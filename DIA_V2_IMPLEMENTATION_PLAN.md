@@ -186,33 +186,8 @@ snowflake-cortex-ai-v2.0/
 │   ├── migrate_semantic_objects.py       # Semantic object migration
 │   └── setup_benchmarks.sql              # Benchmark data loading
 │
-├── docs/                                 # Documentation
-│   ├── user_guide.md                     # End-user query guide
-│   ├── api_reference.md                  # OpenAPI/Swagger reference
-│   └── deployment_guide.md               # Production deployment steps
-│
-│── ──────────────────────────────────────────────────────
-│   REFERENCE & TRAINING (existing)
-│── ──────────────────────────────────────────────────────
-│
-├── instructor-setup/                     # Instructor training materials
-│   ├── AGENT_SETUP.md
-│   ├── INSTRUCTOR_SETUP_WIP.md
-│   └── SEMANTIC_DEPLOY.md
-│
-├── participant-setup/                    # Participant onboarding
-│   ├── FILE_UPLOAD_GUIDE.md
-│   ├── PARTICIPANT_GUIDE.md
-│   ├── README.md
-│   └── setup.sql
-│
-├── sample-data/                          # Sample documents for Cortex Search
-│   ├── README.md
-│   └── docs/
-│       ├── *.pdf                         # Product specification guides
-│       └── *.jpeg                        # Product images
-│
-├── AGENT_DEPLOYMENT_GUIDE.md
-├── MIGRATION_SUMMARY.md
-└── WHY_USE_SNOWSIGHT.md
+└── docs/                                 # Documentation
+    ├── user_guide.md                     # End-user query guide
+    ├── api_reference.md                  # OpenAPI/Swagger reference
+    └── deployment_guide.md               # Production deployment steps
 ```
