@@ -1,0 +1,4563 @@
+name: SFMC_EMAIL_PERFORMANCE_PROD
+description: |
+  Salesforce Marketing Cloud email campaign performance analytics for Volvo.
+  Tracks sends, opens, clicks, bounces, and unsubscribes across business units and markets.
+  Primary use cases: campaign performance monitoring, engagement rate analysis, 
+  market comparisons, and trend reporting.
+
+  Business Units: VCUK (UK), VCDE (Germany), VCFR (France), VCES (Spain), 
+  VCIT (Italy), VCNL (Netherlands), VCBE (Belgium), and others.
+tables:
+  - name: CORTEX_SFMC_BENCHMARK_THRESHOLDS
+    synonyms:
+      - benchmark
+      - benchmarks
+      - industry benchmark
+      - industry standard
+      - KPI target
+      - performance standard
+      - target range
+      - threshold
+      - thresholds
+    description: |-
+      Industry benchmark thresholds for email marketing metrics (2024-2025).
+      Use to auto-classify performance as critical/warning/good/strong/excellent.
+      Supports: open_rate, click_rate, ctor, optout_rate, bounce_rate.
+      Can filter by EMAIL_TYPE: all, triggered, program, campaign, enewsletter, service_reminder.
+    base_table:
+      database: PROD_MARCOM_DB
+      schema: APP_DIRECTMARKETING
+      table: CORTEX_SFMC_BENCHMARK_THRESHOLDS
+    dimensions:
+      - name: ACTION_REQUIRED
+        synonyms:
+          - action
+          - action plan
+          - actions
+          - corrective action
+          - how to fix
+          - improvement action
+          - next steps
+          - optimization steps
+          - recommendation
+          - recommendations
+          - remediation
+          - suggested action
+          - what to do
+        description: Recommended actions or next steps based on performance analysis or benchmark comparisons. Provides guidance for improving metrics that fall below target thresholds.
+        expr: ACTION_REQUIRED
+        data_type: VARCHAR(500)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - Monitor closely. Consider A/B testing subject lines and improving segmentation.
+          - Maintain current practices. Continue optimization efforts.
+          - Immediate attention needed. Check deliverability, subject lines, sender reputation, and list quality.
+      - name: BENCHMARK_ID
+        synonyms:
+          - benchmark code
+          - benchmark identifier
+          - benchmark key
+          - KPI threshold id
+          - record id
+          - threshold id
+          - threshold identifier
+          - threshold key
+        description: Primary key for benchmark record. Unique identifier combining metric name, email type, and status level (e.g., CTOR_ALL_GOOD, OR_PROGRAM_EXPECTED).
+        expr: BENCHMARK_ID
+        data_type: VARCHAR(100)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - OR_ALL_GOOD
+          - OR_ALL_CRITICAL
+          - OR_ALL_WARNING
+      - name: DESCRIPTION
+        synonyms:
+          - benchmark context
+          - benchmark description
+          - benchmark explanation
+          - context
+          - explanation
+          - interpretation
+          - meaning
+          - threshold description
+          - threshold meaning
+          - what this means
+        description: Performance threshold descriptions for email marketing benchmarks in the premium automotive industry. Explains what each threshold range means and provides context for interpretation.y.
+        expr: DESCRIPTION
+        data_type: VARCHAR(1000)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - Open rate below 12% is significantly below premium automotive benchmark.
+          - Open rate 12-15% is mass-market automotive average, below premium target.
+          - Open rate 15-25% meets premium automotive benchmark. This is the Volvo target range.
+      - name: EMAIL_TYPE
+        synonyms:
+          - automation type
+          - campaign type
+          - communication type
+          - content type
+          - email category
+          - email classification
+          - email kind
+          - journey type
+          - message type
+          - send type
+        description: 'Email type for type-specific benchmarks. Values: all, triggered, program, campaign, enewsletter, service_reminder. Use to get benchmarks specific to different email categories.'
+        expr: EMAIL_TYPE
+        data_type: VARCHAR(50)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        is_enum: false
+      - name: INDUSTRY
+        synonyms:
+          - business sector
+          - industry category
+          - industry classification
+          - industry segment
+          - industry type
+          - market segment
+          - market vertical
+          - sector
+          - vertical
+        description: The industry category or sector classification. Default value is 'premium_automotive' for Volvo Cars benchmarks. Enables industry-specific benchmark comparisons.
+        expr: INDUSTRY
+        data_type: VARCHAR(50)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - premium_automotive
+      - name: IS_INVERSE
+        synonyms:
+          - inverse benchmark
+          - inverse flag
+          - inverse indicator
+          - inverse metric
+          - lower is better
+          - negative metric
+          - reverse logic
+          - reversed threshold
+        description: Indicates whether the benchmark threshold uses inverse logic for evaluation. TRUE for metrics where lower is better (optout_rate, bounce_rate). FALSE for metrics where higher is better (open_rate, click_rate, ctor).
+        expr: IS_INVERSE
+        data_type: BOOLEAN
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - 'FALSE'
+          - 'TRUE'
+      - name: METRIC_NAME
+        synonyms:
+          - indicator
+          - KPI
+          - KPI name
+          - measure
+          - measurement
+          - metric
+          - metric identifier
+          - metric type
+          - performance indicator
+          - performance metric
+        description: 'The name of the marketing performance metric being measured. Values: open_rate, click_rate, ctor, optout_rate, bounce_rate. Primary dimension for filtering benchmarks.'
+        expr: METRIC_NAME
+        data_type: VARCHAR(50)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - ctor
+          - click_rate
+          - open_rate
+      - name: SEARCH_CONTENT
+        synonyms:
+          - full text
+          - index content
+          - indexed text
+          - search field
+          - search index
+          - search text
+          - searchable content
+          - semantic content
+        description: Text content used for searching benchmark threshold data across different email marketing metrics and time periods. Auto-generated field combining all relevant fields for Cortex Search semantic indexing.
+        expr: SEARCH_CONTENT
+        data_type: VARCHAR(2000)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - 'Metric: open_rate. Email Type: all. Status: good (Good - Premium Benchmark). Threshold: 15.0000% to 25.0000%. Description: Open rate 15-25% meets premium automotive benchmark. This is the Volvo target range. Action: Maintain current practices. Continue optimization efforts. Industry: premium_automotive Period: 2024-2025'
+          - 'Metric: ctor. Email Type: all. Status: strong (Strong - Above Benchmark). Threshold: 18.0000% to 25.0000%. Description: CTOR 18-25% is strong performance. Content resonates well with audience. Action: Excellent. Document successful content strategies. Industry: premium_automotive Period: 2024-2025'
+          - 'Metric: open_rate. Email Type: all. Status: critical (Critical - Below Benchmark). Threshold: Below 12.0000%. Description: Open rate below 12% is significantly below premium automotive benchmark. Action: Immediate attention needed. Check deliverability, subject lines, sender reputation, and list quality. Industry: premium_automotive Period: 2024-2025'
+      - name: STATUS
+        synonyms:
+          - alert level
+          - benchmark status
+          - health level
+          - health status
+          - performance level
+          - performance status
+          - performance tier
+          - rating
+          - status level
+          - threshold status
+        description: 'Performance status levels used for benchmark evaluation and alerting purposes. Values: critical, warning, good, strong, excellent, info. Ordered from worst to best performance.'
+        expr: STATUS
+        data_type: VARCHAR(20)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - good
+          - critical
+          - warning
+      - name: STATUS_LABEL
+        synonyms:
+          - display status
+          - label text
+          - performance label
+          - readable status
+          - status description
+          - status display
+          - status name
+          - status text
+          - threshold label
+        description: Performance status labels indicating how metrics compare against industry benchmarks and standards. Human-readable labels like 'Good - Premium Benchmark' or 'Critical - Below Benchmark'.
+        expr: STATUS_LABEL
+        data_type: VARCHAR(100)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - Good - Premium Benchmark
+          - Critical - Below Benchmark
+          - Warning - Mass Market Average
+      - name: YEAR_PERIOD
+        synonyms:
+          - benchmark period
+          - benchmark timeframe
+          - benchmark year
+          - data period
+          - effective period
+          - period
+          - reference period
+          - time period
+          - validity period
+        description: The year period for benchmark threshold analysis. Default value is '2024-2025' indicating the benchmark validity period. Enables historical benchmark tracking and updates.
+        expr: YEAR_PERIOD
+        data_type: VARCHAR(20)
+        cortex_search_service:
+          database: PROD_MARCOM_DB
+          schema: APP_DIRECTMARKETING
+          service: CORTEX_SFMC_BENCHMARK_SEARCH
+        sample_values:
+          - 2024-2025
+    time_dimensions:
+      - name: LAST_UPDATED
+        synonyms:
+          - audit timestamp
+          - change date
+          - last modified
+          - modification date
+          - modified timestamp
+          - refresh date
+          - update date
+          - update timestamp
+          - updated at
+        description: The timestamp when the benchmark threshold record was last updated. Used for tracking data freshness and audit purposes.
+        expr: LAST_UPDATED
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-12-29T07:23:07.786+0000
+          - 2025-12-29T07:23:03.182+0000
+          - 2025-12-29T07:23:39.867+0000
+    facts:
+      - name: MAX_VALUE
+        synonyms:
+          - ceiling
+          - max limit
+          - max threshold
+          - maximum limit
+          - maximum threshold
+          - top value
+          - upper bound
+          - upper limit
+          - upper range
+          - upper threshold
+        description: The maximum allowable value for benchmark thresholds. Upper bound of the threshold range in percentage. NULL indicates no upper limit (e.g., >40% for excellent open rate).
+        expr: MAX_VALUE
+        data_type: NUMBER(10,4)
+        access_modifier: public_access
+        default_aggregation: 0
+        sample_values:
+          - '15.0000'
+          - '25.0000'
+          - '12.0000'
+      - name: MIN_VALUE
+        synonyms:
+          - bottom value
+          - floor
+          - lower bound
+          - lower limit
+          - lower range
+          - lower threshold
+          - min limit
+          - min threshold
+          - minimum limit
+          - minimum threshold
+        description: The minimum value threshold used for benchmarking. Lower bound of the threshold range in percentage. NULL indicates no lower limit (e.g., <12% for critical open rate).
+        expr: MIN_VALUE
+        data_type: NUMBER(10,4)
+        access_modifier: public_access
+        sample_values:
+          - '15.0000'
+          - '12.0000'
+    primary_key:
+      columns:
+        - BENCHMARK_ID
+  - name: V_DIM_COUNTRY
+    synonyms:
+      - country dimension
+      - country lookup
+      - country master
+      - country reference
+      - geographic dimension
+      - location dimension
+      - market geography
+      - regional data
+      - sales territory
+      - territory data
+    description: The table contains records of countries with their associated geographic and business classifications. Each record represents a single country and includes regional groupings, sales territories, and market designations used for organizational reporting and analysis.
+    base_table:
+      database: PROD_MARCOM_DB
+      schema: DM
+      table: V_DIM_COUNTRY
+    dimensions:
+      - name: COUNTRY_CODE
+        synonyms:
+          - country abbreviation
+          - country iso
+          - ISO code
+          - ISO country code
+          - two letter code
+        description: |
+          The standardized country code (ISO format).
+          Examples: UK, DE, FR, ES, IT, NL, BE, JP, KR.
+        expr: COUNTRY_CODE
+        data_type: VARCHAR(200)
+        sample_values:
+          - UK
+          - DE
+          - FR
+      - name: COUNTRY_NAME
+        synonyms:
+          - country
+          - country label
+          - country title
+          - geographic name
+          - location name
+          - nation
+          - nation name
+          - state name
+          - territory name
+        description: |
+          The full name of the country.
+          Examples: United Kingdom, Germany, France, Spain, Italy.
+          Synonyms: country, nation, market name.
+        expr: COUNTRY_NAME
+        data_type: VARCHAR(200)
+        sample_values:
+          - Belgium
+          - Albania
+          - North Macedonia
+      - name: MARKET_CD
+        synonyms:
+          - commercial market id
+          - market code
+          - market designation
+          - market id
+          - market identifier
+          - market segment code
+          - mkt cd
+          - mkt code
+          - trading market code
+        description: |
+          The market code identifier (numeric).
+        expr: MARKET_CD
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '441'
+          - '434'
+          - '481'
+      - name: REGION
+        synonyms:
+          - district
+          - division
+          - geographic area
+          - locality
+          - location
+          - province
+          - sector
+          - territory
+          - zone
+        description: |
+          The geographic region where the country is located.
+          Note: Use REGION_NAME_GROUP for filtering queries, not this column.
+        expr: REGION
+        data_type: VARCHAR(100)
+        sample_values:
+          - APEC
+          - EMEA
+          - LATAM
+      - name: REGION_NAME_GROUP
+        synonyms:
+          - area
+          - continent
+          - geographic region
+          - region group
+          - region name
+          - regional grouping
+        description: |
+          The regional grouping name for aggregation purposes.
+          USE THIS COLUMN for filtering by region in queries.
+
+          Values in data: EMEA, APEC, US/CAN, LATAM, Other
+
+          Natural Language Mapping (User Question → REGION_NAME_GROUP Value):
+          - EMEA: "Europe", "European", "EU", "Middle East", "Africa", "UK", "Germany", "France", "Spain", "Italy"
+          - APEC: "Asia", "Asian", "Asia Pacific", "APAC", "Pacific", "Japan", "Korea", "Australia", "China", "Greater China"
+          - US/CAN: "USA", "US", "United States", "America", "Canada", "North America", "NA"
+          - LATAM: "Latin America", "South America", "Central America", "LatAm", "Mexico", "Brazil", "Argentina"
+          - Other: Only use when explicitly mentioned as "Other"
+          - Global/Worldwide: No filter (return all regions)
+
+          Examples:
+          - "What is the open rate in Europe?" → WHERE c.region_name_group = 'EMEA'
+          - "Show me Asia Pacific performance" → WHERE c.region_name_group = 'APEC'
+          - "Compare US and Canada vs LATAM" → WHERE c.region_name_group IN ('US/CAN', 'LATAM')
+        expr: REGION_NAME_GROUP
+        data_type: VARCHAR(100)
+        sample_values:
+          - APEC
+          - EMEA
+          - LATAM
+      - name: SALES_AREA
+        synonyms:
+          - business area
+          - commercial area
+          - distribution area
+          - market area
+          - market territory
+          - sales district
+          - sales region
+          - sales territory
+          - sales zone
+        description: |
+          The sales area designation for the country.
+          Used for sales organization groupings.
+        expr: SALES_AREA
+        data_type: VARCHAR(100)
+        sample_values:
+          - EMEA Importers
+          - EMEA NSC
+          - LATAM NSC
+      - name: VC_COUNTRY_CODE
+        synonyms:
+          - BU code
+          - business unit
+          - internal country code
+          - VC code
+          - vc country id
+          - vc country identifier
+          - vc country ref
+          - volvo cars country code
+          - volvo country code
+          - volvo country id
+        description: |
+          Volvo Cars specific country code identifier.
+          Primary key for joining to fact table via BUSINESSUNIT.
+          Examples: VCUK, VCDE, VCFR, VCES, VCIT, VCNL, VCBE, VCJP, VCKR.
+        expr: VC_COUNTRY_CODE
+        data_type: VARCHAR(202)
+        sample_values:
+          - VCMK
+          - VCAL
+          - VCFR
+    filters:
+      - name: apac_region
+        synonyms:
+          - ANZ
+          - APAC
+          - Asia
+          - Asia Pacific
+          - Asia-Pacific
+          - Asian
+          - Australia
+          - China
+          - Greater China
+          - Japan
+          - Korea
+          - Pacific
+          - Pacific region
+          - Southeast Asia
+        description: Filters for Asia Pacific (APEC) region markets. Use when questions ask about 'Asia', 'Asia Pacific', 'APAC', 'Asian markets', 'Pacific region', or mention specific APAC countries like Japan, Korea, Australia, China. Helps analyze performance across the Asia Pacific regional grouping for geographic comparisons and regional strategy assessment.
+        expr: region_name_group = 'APEC'
+      - name: D2C_market
+        synonyms:
+          - consumer direct market
+          - d2c
+          - D2C
+          - d2c market
+          - D2C segment
+          - direct channel market
+          - direct retail market
+          - direct sales market
+          - direct to consumer market
+          - direct to customer market
+          - DTC market
+        description: 'markets that sell direct to consumers (currently only UK) '
+        expr: vc_country_code = 'VCUK'
+      - name: emea_region
+        synonyms:
+          - Belgium
+          - Eastern Europe
+          - EMEA
+          - EU
+          - Europe
+          - European
+          - France
+          - Germany
+          - Italy
+          - Middle East
+          - Netherlands
+          - Nordic
+          - Nordics
+          - Spain
+          - Sweden
+          - UK
+          - Western Europe
+        description: Filters for Europe, Middle East, and Africa (EMEA) region markets. Use when questions ask about 'Europe', 'European markets', 'EMEA', 'EU performance', 'European region', 'Middle East', 'Africa', or mention specific European countries like UK, Germany, France, Spain, Italy. Helps analyze performance across the EMEA regional grouping for geographic comparisons and regional strategy assessment.
+        expr: region_name_group = 'EMEA'
+      - name: latam_region
+        synonyms:
+          - Argentina
+          - Brazil
+          - Central America
+          - LatAm
+          - LATAM
+          - Latin America
+          - Latin American
+          - Mexico
+          - South America
+          - South American
+        description: Filters for Latin America (LATAM) region markets. Use when questions ask about 'Latin America', 'LATAM', 'South America', 'Central America', 'LatAm', or mention specific Latin American countries like Mexico, Brazil, Argentina. Helps analyze performance across the Latin American regional grouping for geographic comparisons and regional strategy assessment.
+        expr: region_name_group = 'LATAM'
+      - name: other_region
+        synonyms:
+          - Other
+          - Other regions
+          - Remaining markets
+          - Unclassified
+        description: Filters for markets classified as 'Other' region. Use only when user explicitly mentions 'Other' region or asks about markets not belonging to EMEA, APEC, US/CAN, or LATAM regional groupings. Do not apply this filter for general or global queries. Helps isolate performance for markets outside the main regional classifications.
+        expr: region_name_group = 'Other'
+      - name: southern_europe_markets
+        synonyms:
+          - south eu region
+          - south europe region
+          - south european markets
+          - southern eu markets
+          - southern europe area
+          - southern european region
+        description: Filters for Southern European markets including Spain (VCES), France (VCFR), and Italy (VCIT). Use when questions ask about 'Southern Europe', 'Mediterranean markets', 'France Spain Italy', 'Romance language markets', or specific combinations of these three countries. Helps analyze performance patterns across culturally and linguistically similar European markets.
+        expr: VC_COUNTRY_CODE IN ('VCES', 'VCFR', 'VCIT')
+      - name: us_can_region
+        synonyms:
+          - America
+          - American
+          - Canada
+          - Canadian
+          - NA
+          - North America
+          - North American
+          - States
+          - United States
+          - US
+          - USA
+        description: Filters for North America (US/CAN) region markets. Use when questions ask about 'USA', 'US', 'United States', 'America', 'American markets', 'Canada', 'Canadian', 'North America', 'NA', or mention specific North American markets. Helps analyze performance across the United States and Canada regional grouping for geographic comparisons and regional strategy assessment.
+        expr: region_name_group = 'US/CAN'
+    primary_key:
+      columns:
+        - VC_COUNTRY_CODE
+  - name: V_DIM_SFMC_METADATA_JOB
+    synonyms:
+      - campaign metadata view
+      - email campaign metadata
+      - email dispatch metadata
+      - email metadata jobs
+      - email transmission metadata
+      - marketing email jobs
+      - marketing send jobs
+      - send job details
+      - sfmc campaign data
+      - sfmc send metadata
+    description: The table contains records of email marketing campaigns and their associated metadata. Each record represents a single email send and includes details about the campaign configuration, target audience segmentation by vehicle model and geographic region, and compliance tracking.
+    base_table:
+      database: PROD_MARCOM_DB
+      schema: DM
+      table: V_DIM_SFMC_METADATA_JOB
+    dimensions:
+      - name: AB_TESTING
+        synonyms:
+          - A/B test
+          - AB test
+          - experiment
+          - multivariate test
+          - split test
+          - test version
+        description: |
+          A method of marketing testing where two versions (A and B) are compared to determine which one performs better.
+        expr: AB_TESTING
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - B
+          - A
+      - name: BUSINESS_UNIT
+        synonyms:
+          - BU
+          - country code
+          - market
+          - market code
+          - market identifier
+          - VC code
+        description: |
+          A distinct section within an organization representing a market.
+          Examples: VCFI (Finland), VCCA (Canada), VCFR (France), VCAU (Australia).
+        expr: BUSINESS_UNIT
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - VCCA
+          - VCIN
+          - VCPT
+      - name: CAR_MODEL
+        synonyms:
+          - car
+          - car model
+          - car type
+          - model
+          - model name
+          - vehicle
+          - vehicle model
+        description: |
+          The specific Volvo car model associated with the campaign.
+          Examples: XC90, EX30, None (if not model-specific).
+          Synonyms: vehicle model, model name.
+        expr: UPPER(TRIM(CAR_MODEL))
+        data_type: VARCHAR(15)
+        sample_values:
+          - None
+          - XC90
+          - EX30
+      - name: CATALYST_COUNTRY_CODE
+        synonyms:
+          - brief country
+          - catalyst country
+          - catalyst country abbreviation
+          - catalyst country code
+          - catalyst country id
+          - catalyst country identifier
+          - catalyst iso country code
+          - catalyst market
+          - catalyst nation code
+          - catalyst origin country code
+          - catalyst territorial code
+        description: |
+          An identifier representing the country of origin related to the catalyst.
+          Usually matches the BUSINESS_UNIT code.
+        expr: CATALYST_COUNTRY_CODE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - VCCH
+          - VCJP
+      - name: CATALYST_TYPE
+        synonyms:
+          - brief type
+          - catalyst category
+          - catalyst type
+        description: |
+          The type of catalyst/campaign classification.
+          Examples: CPROG (Program), CCAMP (Campaign), LCAMP (Local Campaign).
+        expr: CATALYST_TYPE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - CPROG
+          - CENEWS
+      - name: COMMUNICATION_CATEGORY
+        synonyms:
+          - category
+          - communication category
+          - content category
+          - email category
+          - message category
+        description: |
+          Category of communication.
+          Examples: CAL, TAC.
+        expr: COMMUNICATION_CATEGORY
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - NOT
+          - EVT
+      - name: COMP_KEY
+        synonyms:
+          - business send key
+          - composite key
+          - join key
+          - record key
+          - unique key
+        description: |
+          Composite key - unique identifier created by combining SEND_ID and BUSINESS_UNIT.
+          Example: '2149529VCFI'. Primary key for this table.
+        expr: COMP_KEY
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - 2207635VCDE
+          - 2215541VCMX
+          - 2205462VCCH
+      - name: COMPLIANT
+        synonyms:
+          - approved
+          - compliance
+          - compliance status
+          - compliant
+          - compliant status
+        description: |
+          The state of adherence to rules, regulations, or specified standards within an email or marketing context.
+          Values: compliant, non compliant.
+        expr: COMPLIANT
+        data_type: VARCHAR(13)
+        sample_values:
+          - compliant
+          - non compliant
+      - name: DASHBOARD_CAR_MODEL
+        synonyms:
+          - dashboard model
+          - display model
+          - reporting model
+        description: |
+          Car model categorization for dashboard reporting.
+          Examples: XC90, EX30, Others.
+        expr: UPPER(TRIM (DASHBOARD_CAR_MODEL))
+        data_type: VARCHAR(54)
+        sample_values:
+          - ES90
+          - EX60
+          - XC60
+      - name: EMAIL_LANGUAGE
+        synonyms:
+          - communication language
+          - content language
+          - email language
+          - language
+          - locale
+        description: |
+          The language in which the email content is written.
+          Examples: EN (English), FR (French), FI (Finnish), IT (Italian), JA (Japanese).
+        expr: EMAIL_LANGUAGE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - JA
+          - EN
+      - name: EMAIL_NAME
+        synonyms:
+          - asset name
+          - campaign name
+          - creative name
+          - email name
+          - email title
+          - message title
+          - send name
+        description: |
+          The name or title assigned to a particular email as a reference for identification.
+          Contains campaign details like program, date, model, and version.
+          Synonyms: campaign name, email title, job name.
+        expr: UPPER(EMAIL_NAME)
+        data_type: VARCHAR(50331648)
+        sample_values:
+          - VCUK_NOT_CENEWS_20251218_B2C_global-enewsletter-December-2025-All_EDM1_V2_EN
+          - VCZA_NOT_CENEWS_20250625_B2C_global-enewsletter-June-2025-All_EDM1_V1_EN
+          - VCFI_CPROG_OTD_Redesign_Accessories_EDM2_V3_SEFI
+      - name: EMAIL_NAME_CLEANSED
+        synonyms:
+          - campaign name
+          - clean name
+          - cleansed name
+          - email name
+          - normalized name
+          - send name
+          - specific campaign
+          - standardized name
+        description: |
+          The email name that has been modified for consistency or analysis purposes.
+          Cleaner version of EMAIL_NAME for grouping and reporting.
+                    
+          USAGE FOR SPECIFIC CAMPAIGN SEARCHES:
+          - When user provides a SPECIFIC campaign name, use: email_name_cleansed ILIKE '%user_provided_name%'
+          - Examples: "EX30 Spring Launch", "Q4 Sustainability Campaign", "TestDrive_XC40"
+                    
+           FUZZY SEARCH (when user provides a keyword):
+           - First run: SELECT DISTINCT email_name_cleansed WHERE email_name_cleansed ILIKE '%keyword%' LIMIT 10
+           - Present results to user for confirmation
+           - Then query with confirmed value(s)
+                    
+          NOTE: This is different from the "campaign" filter which filters by CATEGORY (program_or_compaign = 'Campaign')
+        expr: EMAIL_NAME_CLEANSED
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - 6monthplus_6monthplus
+          - TestDrive_XC40UltraB3
+          - POP Service - Service Reminder Y1 v3 2504
+      - name: EMAIL_SEND_NUMBER
+        synonyms:
+          - drop number
+          - eDM
+          - EDM number
+          - send number
+          - send sequence
+          - send wave
+          - sequence
+          - wave
+        description: |
+          EDM plus a sequential number representing the sent emails in a campaign, representing different sends part of the same campaign 
+          Examples: EDM1, EDM3, EDM6 (Electronic Direct Mail sequence).
+        expr: EMAIL_SEND_NUMBER
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - EDM9
+          - EDM0
+          - EDM4
+      - name: EMAIL_SEND_PROCESS
+        synonyms:
+          - creation process
+          - direct engine
+          - email process
+          - engine
+          - platform
+          - send process
+        description: |
+          The workflow involved in the preparation and dispatch of an email campaign.
+          Examples: Direct Engine, Outside Direct Engine.
+        expr: EMAIL_SEND_PROCESS
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - Outside Direct Engine
+          - Direct Engine
+      - name: EMAIL_SOURCE
+        synonyms:
+          - creation source
+          - email source
+          - origin platform
+          - source
+        description: |
+          The origin of the email's content, list, or creative elements.
+          Values: Catalyst, SFMC (Salesforce Marketing Cloud).
+
+          - 'Catalyst': Direct engine emails - briefed and created through Catalyst platform
+          - 'SFMC': Outside direct engine - emails created directly in Salesforce Marketing Cloud
+
+          USAGE:
+          - "Direct engine" / "Catalyst emails" → WHERE m.email_source = 'Catalyst'
+          - "Outside direct engine" / "non-Catalyst" / "SFMC direct" → WHERE m.email_source = 'SFMC'
+        expr: EMAIL_SOURCE
+        data_type: VARCHAR(8)
+        sample_values:
+          - Catalyst
+          - SFMC
+      - name: EMAIL_SUBJECT_LINE
+        synonyms:
+          - email subject
+          - headline
+          - SL
+          - subject
+          - subject line
+          - title
+        description: |
+          The subject line text used in the email campaign.
+          Useful for analyzing subject line performance patterns.
+          Synonyms: subject, email subject, subject line.
+        expr: EMAIL_SUBJECT_LINE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - La tua garanzia Volvo è in scadenza.
+          - Meet the refreshed XC60
+          - Innovaciones de Volvo. Las puedes tener todas
+      - name: EMAIL_VERSION
+        synonyms:
+          - creative version
+          - email version
+          - revision
+          - variant
+          - version
+        description: |
+          The specific variation of an email for A/B testing or localization.
+          Examples: V1, V2.
+        expr: EMAIL_VERSION
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - V3
+          - V1
+      - name: GEOGRAPHIC_SCOPE
+        synonyms:
+          - central or local
+          - geo scope
+          - geographic scope
+          - region scope
+          - scope
+        description: |
+          The range of areas covered by the campaign.
+          Values: Central, Local.
+        expr: GEOGRAPHIC_SCOPE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - Local
+          - Central
+      - name: PROGRAM_NAMES
+        synonyms:
+          - automation name
+          - journey name
+          - program
+          - program identifier
+          - program name
+        description: |
+          The names of marketing programs within an organization.
+          Examples: first-year-program, service-reminder.
+        expr: PROGRAM_NAMES
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - first-year-program
+          - service-reminder
+      - name: PROGRAM_OR_COMPAIGN
+        synonyms:
+          - campaign type
+          - communication type
+          - content type
+          - email type
+          - program or campaign
+          - type
+        description: |-
+          Classifies email communication type based on email naming conventions.
+          - 'Program': Automated lifecycle emails. Identified by 'CPROG' in name, or patterns like 'order to delivery', 'lead nurture', 'volvo cars app', 'first year', 'FYP', 'service reminder'
+          - 'E-newsletter': News communications. Identified by 'CENEWS' in name, or patterns like 'global-enewsletter', 'Enewsletter', 'E_newsletter'
+          - 'Campaign': Marketing campaign emails (default for other emails)
+        expr: PROGRAM_OR_COMPAIGN
+        data_type: VARCHAR(12)
+        sample_values:
+          - Program
+          - E-newsletter
+        is_enum: false
+      - name: SEND_ID
+        synonyms:
+          - email job
+          - job ID
+          - job number
+          - send identifier
+          - send job
+        description: The ID associated with the send.
+        expr: SEND_ID
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '2220086'
+          - '2202698'
+          - '2189614'
+      - name: SEND_TYPE
+        synonyms:
+          - delivery type
+          - email send type
+          - send type
+        description: |
+          The classification of an email send based on its purpose.
+          Values: Program, Campaign.
+        expr: SEND_TYPE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - Program
+          - E-newsletter
+    time_dimensions:
+      - name: SEND_DATE
+        synonyms:
+          - campaign date
+          - date
+          - date sent
+          - email date
+          - send date
+          - sent date
+        description: |
+          The date on which an email was sent to recipients.
+          Use for time-based analysis of campaign metadata.
+        expr: SEND_DATE
+        data_type: DATE
+        sample_values:
+          - '2025-12-09'
+          - '2025-09-01'
+          - '2025-10-10'
+    filters:
+      - name: campaign
+        synonyms:
+          - campaign
+          - campaigns
+          - direct mail campaigns
+          - edm campaign
+          - edm campaigns
+          - global campaign
+          - global campaigns
+        description: |-
+          Use to filter for CAMPAIGN category only (excludes Programs and E-newsletters).
+          Campaigns: Fixed sends based on business objectives (ex. new model launch, seasonal promotion).
+          CRITICAL: When user says "campaign" as a category (not a specific name), apply this filter.
+          Examples: "show me campaign performance", "global campaigns", "eDM campaigns"
+        expr: program_or_compaign = 'Campaign'
+      - name: catalyst_emails
+        synonyms:
+          - catalyst creation source
+          - catalyst email engine
+          - catalyst engine
+          - catalyst source
+          - catalyst source
+        description: Direct engine emails - briefed and created through Catalyst platform
+        expr: EMAIL_SOURCE = 'Catalyst'
+      - name: central_program
+        synonyms:
+          - central program
+          - central programs
+          - centrally managed program
+          - HQ program
+        description: Program emails with central/global scope. Use when user asks about "central programs", "global programs", "HQ programs", or "centrally managed programs".
+        expr: GEOGRAPHIC_SCOPE = 'Central' AND PROGRAM_OR_COMPAIGN = 'Program'
+      - name: direct_engine
+        synonyms:
+          - briefed emails
+          - catalyst
+          - catalyst briefed
+          - catalyst emails
+          - direct engine
+          - direct engine emails
+        description: Emails briefed and created through the Catalyst direct engine platform. Use when user asks about "direct engine", "Catalyst emails", "Catalyst briefed", or "DE emails".
+        expr: EMAIL_SEND_PROCESS = 'Direct Engine'
+      - name: direct_engine_campaign
+        synonyms:
+          - catalyst campaign
+          - DE campaign
+          - direct engine campaign
+        description: Marketing campaign emails created through Catalyst. Use when user asks about "direct engine campaigns", "Catalyst campaigns", or "DE campaigns".
+        expr: EMAIL_SEND_PROCESS = 'Direct Engine' AND PROGRAM_OR_COMPAIGN ='Campaign'
+      - name: direct_engine_enewsletter
+        synonyms:
+          - catalyst newsletter
+          - DE e-newsletter
+          - DE enews
+          - direct engine newsletter
+        description: E-newsletter emails created through Catalyst. Use when user asks about "direct engine newsletters", "Catalyst newsletters", or "DE enews".
+        expr: EMAIL_SEND_PROCESS = 'Direct Engine' AND PROGRAM_OR_COMPAIGN = 'E-newsletter'
+      - name: direct_engine_program
+        synonyms:
+          - catalyst program
+          - DE program
+          - direct engine program
+        description: Automated program emails created through Catalyst. Use when user asks about "direct engine programs", "Catalyst programs", or "DE programs".
+        expr: EMAIL_SEND_PROCESS = 'Direct Engine' AND PROGRAM_OR_COMPAIGN = 'Program'
+      - name: eNewsletters
+        synonyms:
+          - e-news
+          - e-newsletter
+          - enews
+          - Enewsletter
+          - Enewsletters
+          - global-enewsletter
+          - global-enewsletters
+          - news
+          - news
+          - news email
+          - newsletter
+          - newsmail
+        description: 'Use on campaign metadata to include only programs based on category is ''E-newsletter''. eNewsletters: monthly newsletters (not sent in all markets, and not always monthly) , news communications. Identified by ''CENEWS'' in name, or patterns like ''global-enewsletter'', ''Enewsletter'', ''E_newsletter'''
+        expr: program_or_compaign = 'E-newsletter'
+      - name: first_year_program
+        synonyms:
+          - first year
+          - first year program
+          - first-year-program
+          - FYP
+          - new owner program
+          - ownership program
+          - year one
+        description: First Year Program emails - automated emails for customers in their first year of ownership. Use when user asks about "first year program", "FYP", "first year", "new owner program", or "year one".
+        expr: PROGRAM_OR_COMPAIGN = 'Program' AND PROGRAM_NAMES ILIKE '%first-year-program%'
+      - name: Is_AB_test
+        synonyms:
+          - AB experiment
+          - AB test
+          - AB testing
+          - experimental test
+          - multivariate test
+          - split test
+          - split testing
+          - test flag
+          - test variation
+          - variant test
+        description: AB Testing Boolean flag
+        expr: AB_TESTING IS NOT NULL
+      - name: lead_nurture_program
+        synonyms:
+          - lead nurture
+          - lead nurture program
+          - lead nurturing
+          - lead program
+          - LNP
+          - nurture program
+          - nurture sequence
+        description: Lead Nurture Program emails - automated nurturing sequence for leads. Use when user asks about "lead nurture", "LNP", "lead nurturing", "nurture program", or "lead program".
+        expr: PROGRAM_OR_COMPAIGN = 'Program' AND (PROGRAM_NAMES ILIKE '%lead-nurture%' OR PROGRAM_NAMES ILIKE '%lead-nurture-2%' OR PROGRAM_NAMES ILIKE '%LNP%')
+      - name: local_program
+        synonyms:
+          - local automated
+          - local program
+          - local programs
+          - market program
+          - market-specific program
+        description: Program emails with local/market-specific scope. Use when user asks about "local programs", "market-specific programs", or "local automated emails".
+        expr: GEOGRAPHIC_SCOPE = 'Local' AND PROGRAM_OR_COMPAIGN = 'Program'
+      - name: order_to_delivery_program
+        synonyms:
+          - delivery program
+          - O2D
+          - order program
+          - order to delivery
+          - order-to-delivery
+          - OTD
+          - purchase journey
+        description: Order to Delivery Program emails - automated emails tracking customer journey from order to vehicle delivery. Use when user asks about "order to delivery", "O2D", "OTD", "delivery program", or "order program".
+        expr: PROGRAM_OR_COMPAIGN = 'Program' AND PROGRAM_NAMES ILIKE '%order-to-delivery%'
+      - name: outside_direct_engine
+        synonyms:
+          - manual
+          - non-catalyst
+          - non-DE
+          - non-DE
+          - ODE
+          - outside direct engine
+          - SFMC direct
+        description: Emails created outside the Catalyst platform, directly in SFMC. Use when user asks about "outside direct engine", "non-Catalyst", "ODE", "SFMC direct", or "manual emails".
+        expr: EMAIL_SEND_PROCESS = 'Outside Direct Engine'
+      - name: outside_direct_engine_campaign
+        synonyms:
+          - non-catalyst campaign
+          - ODE campaign
+          - outside direct engine campaign
+        description: Marketing campaign emails created outside Catalyst. Use when user asks about "ODE campaigns", "non-Catalyst campaigns", or "manual campaigns".
+        expr: EMAIL_SEND_PROCESS = 'Outside Direct Engine' AND PROGRAM_OR_COMPAIGN = 'Campaign'
+      - name: outside_direct_engine_program
+        synonyms:
+          - non-catalyst program
+          - ODE program
+          - outside direct engine program
+        description: Automated program emails created outside Catalyst (directly in SFMC). Use when user asks about "ODE programs", "non-Catalyst programs", or "manual programs".
+        expr: EMAIL_SEND_PROCESS = 'Outside Direct Engine' AND PROGRAM_OR_COMPAIGN = 'Program'
+      - name: program
+        synonyms:
+          - automated emails
+          - automated program
+          - automation
+          - journey
+          - lifecycle
+          - marketing program
+          - program
+          - program emails
+          - programs
+        description: 'Use on campaign metadata to include only programs based on category is ''Program''. Programs: triggered emails, based on behaviour (ex. first year after buying a car), automated lifecycle emails. Identified by ''CPROG'' in name, or patterns like ''order to delivery'', ''lead nurture'', ''volvo cars app'', ''first year'', ''FYP'', ''service reminder'''
+        expr: program_or_compaign = 'Program'
+      - name: renew_program
+        synonyms:
+          - cprog renew
+          - customer renewal
+          - renew emails
+          - renew program
+          - renewal
+          - renewal sequence
+          - retention program
+        description: Renew Program emails - automated renewal/retention emails for existing customers. Use when user asks about "renew program", "renewal", "retention program", "renew emails", or "customer renewal".
+        expr: PROGRAM_OR_COMPAIGN = 'Program' AND EMAIL_NAME ILIKE '%cprog_renew_%' AND EMAIL_NAME NOT ILIKE '%test%'
+      - name: sfmc_emails
+        synonyms:
+          - non-catalyst
+          - sfmc
+          - SFMC
+          - sfmc direct
+          - SFMC direct
+        description: Outside direct engine - emails created directly in Salesforce Marketing Cloud
+        expr: email_source = 'SFMC'
+    metrics:
+      - name: UNIQUE_CAMPAIGN_COUNT
+        synonyms:
+          - campaign count unique
+          - campaign distinct count
+          - campaign unique count
+          - distinct campaign count
+          - distinct campaigns total
+          - total unique campaigns
+          - unique campaign number
+          - unique campaign total
+        description: Counts the number of distinct email campaigns or email names. Use when questions ask about 'number of campaigns', 'how many emails', 'campaign count', 'email variety', or 'campaign diversity'. Helps measure campaign activity volume, analyze campaign portfolio size, and compare campaign frequency across different time periods, markets, or campaign types.
+        expr: COUNT(DISTINCT email_name)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - COMP_KEY
+  - name: V_FACT_SFMC_PERFORMANCE_TRACKING
+    synonyms:
+      - campaign send analytics
+      - direct marketing performance
+      - email campaign performance
+      - email delivery tracking
+      - email engagement facts
+      - email performance metrics
+      - marketing campaign tracking
+      - marketing communication metrics
+      - send engagement data
+      - send performance data
+    description: The table contains records of email marketing campaign performance metrics. Each record represents engagement data for individual email sends, including delivery statistics, recipient interactions, and unsubscribe activity across different business units.
+    base_table:
+      database: PROD_MARCOM_DB
+      schema: DM
+      table: V_FACT_SFMC_PERFORMANCE_TRACKING
+    dimensions:
+      - name: BUSINESS_UNIT
+        synonyms:
+          - BU
+          - business unit code
+          - country code
+          - market
+          - market code
+          - market identifier
+          - VC code
+        description: |
+          The business unit or market identifier representing Volvo Cars regional operations.
+          Examples: 'VCUK' (Volvo Cars UK), 'VCDE' (Germany), 'VCFR' (France), 
+          'VCES' (Spain), 'VCIT' (Italy), 'VCNL' (Netherlands), 'VCBE' (Belgium).
+          Synonyms: market, country, region, BU, business unit code, market code.
+        expr: BUSINESS_UNIT
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - VCUK
+          - VCDE
+          - VCFR
+          - VCES
+          - VCIT
+          - VCNL
+          - VCBE
+      - name: COMP_KEY
+        synonyms:
+          - composite key
+          - join key
+          - record key
+          - unique key
+        description: |
+          The composite key combining SEND_ID and BUSINESS_UNIT.
+          This is the join key to V_DIM_SFMC_METADATA_JOB.COMP_KEY.
+          Example: '2149529VCFI'
+        expr: COMP_KEY
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - '-2410617105549356863VCVNdatorama'
+          - '-7169393893336391219VCBRdatorama'
+          - 1627699058966484080VCTHdatorama
+      - name: SEND_ID
+        synonyms:
+          - email job
+          - job ID
+          - job number
+          - send identifier
+          - send job
+        description: |
+          The unique identifier for the email send job.
+          Used for tracking individual campaign sends.
+        expr: SEND_ID
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '-5950237513146579421'
+          - '5791071666304480150'
+          - '-7439925628603379570'
+      - name: SOURCE
+        synonyms:
+          - data origin
+          - data source
+          - origin
+          - source system
+        description: |
+          The data source identifier.
+          Values: sfmc (Salesforce Marketing Cloud).
+        expr: SOURCE
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - sfmc
+          - datorama
+    time_dimensions:
+      - name: DATE_KEY
+        synonyms:
+          - date id
+          - date integer
+          - date key
+        description: Date as integer key in YYYYMMDD format. Use for date-based joins and sorting.
+        expr: TO_CHAR(SEND_DATE, 'YYYYMMDD')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - '20220406'
+          - '20250628'
+          - '20250524'
+      - name: DAY_OF_MONTH
+        synonyms:
+          - date day
+          - day
+          - day number
+          - day of month
+        description: Day of the month (1-31).
+        expr: DAY(SEND_DATE)
+        data_type: NUMBER(2,0)
+        sample_values:
+          - '21'
+          - '17'
+          - '30'
+      - name: HALF_YEAR
+        synonyms:
+          - first half
+          - H1
+          - H2
+          - half
+          - half year
+          - second half
+          - semester
+          - semi-annual
+        description: Half-year indicator (H1 = Jan-Jun, H2 = Jul-Dec). Use when user asks about "first half", "second half", "H1", "H2", or "semi-annual".
+        expr: CASE WHEN MONTH(SEND_DATE) <= 6 THEN 'H1' ELSE 'H2' END
+        data_type: VARCHAR(2)
+        sample_values:
+          - H1
+          - H2
+      - name: IS_WEEKEND
+        synonyms:
+          - day type
+          - is weekend
+          - weekend
+          - weekend flag
+        description: Indicates if send date was a weekend or weekday. Use when user asks about "weekend sends", "weekday performance", or "weekend vs weekday".
+        expr: CASE WHEN DAYOFWEEKISO(SEND_DATE) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END
+        data_type: VARCHAR(7)
+        sample_values:
+          - Weekend
+          - Weekday
+      - name: MONTH_DAY
+        synonyms:
+          - day month
+          - MM-DD
+          - month and day
+          - month day
+        description: Month and day in MM-DD format. Useful for year-over-year daily comparisons.
+        expr: TO_CHAR(SEND_DATE, 'MM-DD')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - 12-26
+          - 02-04
+          - 03-06
+      - name: MONTH_NAME
+        synonyms:
+          - month abbrev
+          - month name
+          - month short
+        description: Abbreviated month name (Jan, Feb, Mar, etc.). Use for month display in reports.
+        expr: TO_CHAR(SEND_DATE, 'Mon')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - May
+          - Jan
+          - Feb
+      - name: MONTH_NAME_FULL
+        synonyms:
+          - full month name
+          - month full
+          - month long
+        description: Full month name (January, February, etc.). Use for full month display.
+        expr: |-
+          CASE MONTH(SEND_DATE)
+            WHEN 1 THEN 'January'
+            WHEN 2 THEN 'February'
+            WHEN 3 THEN 'March'
+            WHEN 4 THEN 'April'
+            WHEN 5 THEN 'May'
+            WHEN 6 THEN 'June'
+            WHEN 7 THEN 'July'
+            WHEN 8 THEN 'August'
+            WHEN 9 THEN 'September'
+            WHEN 10 THEN 'October'
+            WHEN 11 THEN 'November'
+            WHEN 12 THEN 'December'
+          END
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - December
+          - June
+          - May
+      - name: MONTH_NUMBER
+        synonyms:
+          - month index
+          - month no
+          - month number
+        description: Month number (1-12). Use for month-based sorting and filtering.
+        expr: MONTH(SEND_DATE)
+        data_type: NUMBER(2,0)
+        sample_values:
+          - '10'
+          - '6'
+          - '1'
+      - name: QUARTER_NAME
+        synonyms:
+          - fiscal quarter
+          - Q1
+          - Q2
+          - Q3
+          - Q4
+          - quarter name
+        description: fiscal quarter, Q1, Q2, Q3, Q4, quarter name
+        expr: '''Q'' || QUARTER(SEND_DATE)'
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - Q4
+          - Q1
+          - Q3
+          - Q2
+      - name: SEND_DATE
+        synonyms:
+          - campaign date
+          - date
+          - date sent
+          - delivery date
+          - email date
+          - send date
+          - sent date
+        description: |
+          The date when the email was sent. Primary date dimension for time-based analysis.
+          Use for filtering by date ranges, monthly/weekly trends, and period comparisons.
+          Synonyms: send date, email date, campaign date, delivery date.
+        expr: SEND_DATE
+        data_type: DATE
+        sample_values:
+          - '2021-10-05'
+          - '2021-10-07'
+          - '2022-06-01'
+      - name: SEND_MONTH
+        synonyms:
+          - campaign month
+          - delivery month
+          - email month
+          - month
+          - monthly
+          - send period month
+        description: First day of the month for monthly aggregation and trend analysis. Use when user asks about "monthly performance", "by month", "month over month", or "MoM trends".
+        expr: DATE_TRUNC('MONTH', SEND_DATE)
+        data_type: DATE
+        sample_values:
+          - '2025-07-01'
+          - '2025-09-01'
+          - '2021-09-01'
+      - name: SEND_QUARTER
+        synonyms:
+          - campaign quarter
+          - quarter
+          - quarterly
+          - send qtr
+        description: First day of the quarter for quarterly aggregation. Use when user asks about "quarterly performance", "by quarter", "Q1/Q2/Q3/Q4", or "QoQ trends".
+        expr: DATE_TRUNC('QUARTER', SEND_DATE)
+        data_type: DATE
+      - name: SEND_YEAR
+        synonyms:
+          - annual
+          - campaign year
+          - email year
+          - send year
+          - yearly
+        description: First day of the year for yearly aggregation. Use when user asks about "yearly performance", "by year", "annual", or "YoY trends".
+        expr: TO_CHAR(SEND_DATE, 'MON')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - Apr
+          - Sep
+          - Feb
+      - name: WEEK_NAME
+        synonyms:
+          - week
+          - week label
+          - week name
+        description: Week name with W prefix (W01, W26, W52). Use for week display.
+        expr: '''W'' || LPAD(WEEKISO( SEND_DATE)::STRING, 2, ''0'')'
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - W29
+          - W03
+          - W08
+      - name: WEEK_NUMBER
+        synonyms:
+          - ISO week number
+          - week no
+          - week number
+          - week of year
+        description: ISO week number (1-53). Use for week-based analysis.
+        expr: WEEKISO(SEND_DATE)
+        data_type: NUMBER(2,0)
+        sample_values:
+          - '52'
+          - '14'
+          - '35'
+      - name: WEEKDAY_NAME
+        synonyms:
+          - day name
+          - day of week
+          - DOW name
+          - weekday
+        description: Day of week name (Mon, Tue, Wed, etc.). Use when user asks about "which day of week", "weekday performance", or "day analysis".
+        expr: DAYNAME(SEND_DATE)
+        data_type: VARCHAR(3)
+        sample_values:
+          - Tue
+          - Sun
+          - Wed
+      - name: WEEKDAY_NUMBER
+        synonyms:
+          - day of week number
+          - DOW
+          - weekday number
+        description: Day of week number (1=Monday, 7=Sunday). Use for weekday analysis.
+        expr: DAYOFWEEKISO(SEND_DATE)
+        data_type: NUMBER(2,0)
+        sample_values:
+          - '1'
+          - '6'
+          - '2'
+      - name: YEAR_MONTH
+        synonyms:
+          - month year
+          - monthly period
+          - period
+          - year month
+          - YYYYMM
+        description: Year and month in YYYY-MM format. Use for monthly time series and sorting.
+        expr: TO_CHAR(SEND_DATE, 'YYYY-MM')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - 2025-10
+          - 2025-11
+          - 2025-06
+      - name: YEAR_MONTH_SHORT
+        synonyms:
+          - short period
+          - year month short
+        description: Year and month in YY-MM short format.
+        expr: TO_CHAR(SEND_DATE, 'YY-MM')
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - 22-04
+          - 25-05
+          - 21-01
+      - name: YEAR_NUMBER
+        synonyms:
+          - calendar year
+          - year
+          - year number
+        description: Four-digit year number. Use for year filtering and grouping.
+        expr: YEAR(SEND_DATE)
+        data_type: NUMBER(4,0)
+        sample_values:
+          - '2021'
+          - '2025'
+          - '2020'
+      - name: YEAR_QUARTER
+        synonyms:
+          - quarter year
+          - quarterly period
+          - year quarter
+        description: Year and quarter in YYYY-Q# format. Use for quarterly time series.
+        expr: YEAR(SEND_DATE) || '-' || 'Q' || QUARTER(SEND_DATE)
+        data_type: VARCHAR(134217728)
+        sample_values:
+          - 2021-Q2
+          - 2022-Q2
+          - 2021-Q4
+    facts:
+      - name: BOUNCES
+        synonyms:
+          - bounce raw count
+          - bounces raw
+          - raw bounces
+        description: |
+          The total number of bounced emails (undeliverable).
+          Includes hard bounces (invalid address) and soft bounces (temporary issues).
+          High bounce rate (>2%) indicates list quality problems.
+        expr: BOUNCES
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '0'
+          - '975'
+          - '10'
+      - name: CLICKS
+        synonyms:
+          - clicks raw
+          - gross clicks raw
+          - raw clicks
+        description: |
+          The total number of clicks on links within the email (including multiple clicks by same recipient).
+          NOT used for rate calculations - use UNIQUE_CLICKS instead for CTR/CTOR.
+          Synonyms: total clicks, link clicks, click count.
+        expr: CLICKS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+      - name: OPENS
+        synonyms:
+          - gross opens raw
+          - opens raw
+          - raw opens
+        description: |
+          The total number of email opens (including multiple opens by same recipient).
+          NOT used for rate calculations - use UNIQUE_OPENS instead for open rate.
+          Note: May include tracking pixel loads, not always actual reads.
+        expr: OPENS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '1'
+          - '4'
+          - '2'
+      - name: SENDS
+        synonyms:
+          - delivery attempts
+          - raw sends
+          - sends raw
+        description: |
+          The total number of email delivery attempts.
+          This is NOT successful deliveries - use (SENDS - BOUNCES) for delivered emails.
+          Base metric for calculating bounce rate and unsubscribe rate.
+          Synonyms: total sends, email volume, send count, delivery attempts.
+        expr: SENDS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '5'
+          - '3'
+          - '2'
+      - name: UNIQUE_CLICKS
+        synonyms:
+          - raw unique clicks
+          - unique clicks raw
+        description: |
+          The count of unique recipients who clicked (deduplicated).
+          PRIMARY METRIC for click rate calculations: 
+          - CTR (click_rate) = UNIQUE_CLICKS / DELIVERED
+          - CTOR (click_to_open_rate) = UNIQUE_CLICKS / UNIQUE_OPENS
+          Synonyms: unique click count, distinct clicks, individual clickers.
+        expr: UNIQUE_CLICKS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '1'
+          - '31'
+          - '2'
+      - name: UNIQUE_OPENS
+        synonyms:
+          - raw unique opens
+          - unique opens raw
+        description: |
+          The count of unique recipients who opened the email (deduplicated).
+          PRIMARY METRIC for open rate calculations: open_rate = UNIQUE_OPENS / DELIVERED.
+          More accurate measure of reach than total opens.
+          Synonyms: unique open count, distinct opens, individual opens.
+        expr: UNIQUE_OPENS
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '0'
+          - '3'
+          - '5'
+      - name: UNSUBSCRIBES
+        synonyms:
+          - raw unsubscribes
+          - unsubs raw
+          - unsubscribes raw
+        description: |
+          The total number of recipients who opted out/unsubscribed.
+          Key indicator of email fatigue and content relevance.
+          Synonyms: opt-outs, unsubscribe count, list churn.
+          Benchmark: <0.5% is considered healthy.
+        expr: UNSUBSCRIBES
+        data_type: NUMBER(38,0)
+        access_modifier: public_access
+        sample_values:
+          - '0'
+          - '127'
+          - '1'
+    filters:
+      - name: critical_optout
+        synonyms:
+          - critical opt-out
+          - critical unsubscribe
+          - severe unsubscribe
+          - urgent opt-out
+        description: |-
+          Markets or campaigns with opt-out rate above 0.4% - critical level for premium automotive (2024-2025). Use when user asks about "critical opt-out", "severe unsubscribe", "urgent opt-out issues".
+
+          IMPORTANT: Apply with HAVING clause after aggregation:
+          HAVING SUM(unsubscribes) * 100.0 / NULLIF(SUM(sends), 0) > 0.4
+        expr: SUM(UNSUBSCRIBES) * 100.0 / NULLIF(SUM(SENDS), 0) > 0.4
+      - name: healthy_markets
+        synonyms:
+          - all green
+          - good health
+          - healthy
+          - healthy markets
+          - stable performance
+        description: |-
+          Markets with all metrics within healthy premium automotive ranges (2024-2025): Open Rate >15%, CTOR >12%, Opt-out <0.25%, Bounce <1.5%. Use when user asks about "healthy markets", "good health", "stable performance".
+
+          IMPORTANT: Apply with HAVING clause after aggregation:
+          HAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0) >= 15
+             AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) >= 12
+             AND SUM(unsubscribes) * 100.0 / NULLIF(SUM(sends), 0) <= 0.25
+             AND SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0) <= 1.5
+        expr: |-
+          SUM(UNIQUE_OPENS) * 100.0 / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0) >= 15
+             AND SUM(UNIQUE_CLICKS) * 100.0 / NULLIF(SUM(UNIQUE_OPENS), 0) >= 12
+             AND SUM(UNSUBSCRIBES) * 100.0 / NULLIF(SUM(SENDS), 0) <= 0.25
+             AND SUM(BOUNCES) * 100.0 / NULLIF(SUM(SENDS), 0) <= 1.5
+      - name: high_bounce_warning
+        synonyms:
+          - bounce problems
+          - bounce warning
+          - delivery issues
+          - high bounce
+          - list health
+        description: |-
+          arkets or campaigns with bounce rate above 1.5% automotive threshold (2024-2025). Use when user asks about "high bounce", "bounce issues", "delivery problems", or "list health concerns".
+
+          IMPORTANT: Apply with HAVING clause after aggregation:
+          HAVING SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0) > 1.5
+        expr: SUM(BOUNCES) * 100.0 / NULLIF(SUM(SENDS), 0) > 1.5
+      - name: high_optout_warning
+        synonyms:
+          - at-risk
+          - high opt-out
+          - high unsubscribe
+          - opt-out warning
+          - unsubscribe concerns
+        description: |-
+          Markets or campaigns with opt-out rate above 0.25% premium automotive threshold (2024-2025). Note: Gmail changes made unsubscribing easier, so rates are higher industry-wide. Use when user asks about "high opt-out", "unsubscribe concerns", "opt-out warning".
+
+          IMPORTANT: Apply with HAVING clause after aggregation:
+          HAVING SUM(unsubscribes) * 100.0 / NULLIF(SUM(sends), 0) > 0.25
+        expr: SUM(UNSUBSCRIBES) * 100.0 / NULLIF(SUM(SENDS), 0) > 0.25
+      - name: last_12_months
+        synonyms:
+          - last 12 months
+          - last twelve months
+          - past 12 months
+          - trailing twelve months
+          - TTM
+        description: The 12 most recent COMPLETE calendar months. Use when user asks about "last 12 months", "past year", "trailing twelve months", "TTM".
+        expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -12, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
+      - name: last_2_quarters
+        synonyms:
+          - last 2 quarters
+          - last two quarters
+          - past 2 quarters
+          - previous 2 quarters
+        description: 'The 2 most recent COMPLETE quarters. Example: If today is Jan 15, 2025, returns Q3-Q4 2024. Use when user asks about "last 2 quarters", "past 2 quarters".'
+        expr: SEND_DATE >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -2, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('QUARTER', CURRENT_DATE)
+      - name: last_3_months
+        synonyms:
+          - last 3 months
+          - last three months
+          - past 3 months
+          - previous 3 months
+        description: 'The 3 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Oct-Dec 2024. Use when user asks about "last 3 months", "past 3 months", "previous 3 months".'
+        expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -3, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
+      - name: last_6_months
+        synonyms:
+          - last 6 months
+          - last half year
+          - last six months
+          - past 6 months
+          - previous 6 months
+        description: 'The 6 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Jul-Dec 2024. Use when user asks about "last 6 months", "past 6 months", "last half year".'
+        expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
+      - name: last_month
+        synonyms:
+          - last complete month
+          - last month
+          - previous month
+          - prior month
+        description: 'The most recent COMPLETE calendar month. Example: If today is Jan 15, 2025, returns Dec 1-31, 2024. Use when user asks about "last month", "previous month", "prior month".'
+        expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
+      - name: last_quarter
+        synonyms:
+          - last Q
+          - last quarter
+          - LQ
+          - previous quarter
+          - prior quarter
+        description: 'The most recent COMPLETE quarter. Example: If today is Jan 15, 2025, returns Q4 2024 (Oct-Dec). Use when user asks about "last quarter", "previous quarter", "prior quarter", "last Q".'
+        expr: SEND_DATE >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('QUARTER', CURRENT_DATE)
+      - name: last_rolling_30_days
+        synonyms:
+          - last 30 days
+          - last thirty days
+          - past 30 days
+        description: 'Rolling 30-day period from today. Note: This is rolling, not complete calendar months. Use when user specifically asks about "last 30 days", "past 30 days".'
+        expr: SEND_DATE >= DATEADD('DAY', -30, CURRENT_DATE) AND SEND_DATE <= CURRENT_DATE
+      - name: last_rolling_90_days
+        synonyms:
+          - last 90 days
+          - last ninety days
+          - past 90 days
+        description: 'Rolling 90-day period from today. Note: This is rolling, not complete calendar quarters. Use when user specifically asks about "last 90 days", "past 90 days".'
+        expr: SEND_DATE >= DATEADD('DAY', -90, CURRENT_DATE) AND SEND_DATE <= CURRENT_DATE
+      - name: last_week
+        synonyms:
+          - last week
+          - LW
+          - previous week
+          - prior week
+        description: The most recent COMPLETE week (Monday-Sunday). Use when user asks about "last week", "previous week".
+        expr: SEND_DATE >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('WEEK', CURRENT_DATE)
+      - name: last_week_sends
+        description: Filters for email campaigns sent during the previous complete week (Monday to Sunday). Use when questions ask about 'last week performance', 'previous week results', 'week-over-week comparison', 'recent weekly activity', or 'last week's campaigns'. Helps analyze recent email performance trends and weekly campaign effectiveness.
+        expr: SEND_DATE < DATE_TRUNC('WEEK', CURRENT_DATE) AND SEND_DATE >= DATE_TRUNC('WEEK', DATEADD(WEEK, -1, CURRENT_DATE))
+      - name: last_year
+        synonyms:
+          - last year
+          - LY
+          - previous year
+          - prior year
+        description: 'The most recent COMPLETE calendar year. Example: If today is Jan 15, 2025, returns full year 2024. Use when user asks about "last year", "previous year", "prior year".'
+        expr: SEND_DATE >= DATE_TRUNC('YEAR', DATEADD('YEAR', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('YEAR', CURRENT_DATE)
+      - name: minimum_viable_campaigns
+        description: Filters for campaigns with more than 50 total sends, including smaller but still meaningful campaign volumes. Use when questions ask about 'all meaningful campaigns', 'including smaller campaigns', 'comprehensive campaign analysis', or when including lower-volume but significant sends. Helps ensure analysis includes campaigns with sufficient volume for basic performance assessment.
+        expr: SUM(SENDS) > 50
+      - name: this_month
+        synonyms:
+          - current month
+          - month to date
+          - MTD
+          - this month
+        description: Current incomplete month (from 1st to today). Use when user asks about "this month", "current month", "month to date", "MTD".
+        expr: SEND_DATE >= DATE_TRUNC('MONTH', CURRENT_DATE) AND SEND_DATE <= CURRENT_DATE
+      - name: this_quarter
+        synonyms:
+          - current quarter
+          - QTD
+          - quarter to date
+          - this quarter
+        description: Current incomplete quarter (from quarter start to today). Use when user asks about "this quarter", "current quarter", "quarter to date", "QTD".
+        expr: SEND_DATE >= DATE_TRUNC('QUARTER', CURRENT_DATE) AND SEND_DATE <= CURRENT_DATE
+      - name: this_year
+        synonyms:
+          - current year
+          - this year
+          - year to date
+          - YTD
+        description: Current incomplete year (from Jan 1 to today). Use when user asks about "this year", "current year", "year to date", "YTD".
+        expr: SEND_DATE >= DATE_TRUNC('YEAR', CURRENT_DATE) AND SEND_DATE <= CURRENT_DATE
+      - name: top_performers_opens
+        synonyms:
+          - best opens
+          - champion opens
+          - elite opens
+          - highest opens
+          - leading opens
+          - maximum opens
+          - outstanding opens
+          - peak opens
+          - premier opens
+          - superior opens
+        description: |-
+          Markets or campaigns exceeding premium automotive benchmarks (2024-2025): Open Rate >25%, CTOR >18%. Use when user asks about "top performers", "best campaigns", "high engagement", "excellent performance".
+
+          IMPORTANT: Apply with HAVING clause after aggregation:
+          HAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0) > 25
+             AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) > 18
+        expr: |-
+          SUM(UNIQUE_OPENS) * 100.0 / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0) > 25
+             AND SUM(UNIQUE_CLICKS) * 100.0 / NULLIF(SUM(UNIQUE_OPENS), 0) > 18
+    metrics:
+      - name: BOUNCE_RATE
+        synonyms:
+          - bounce percentage
+          - bounce rate
+          - bounce ratio
+          - BR
+          - delivery bounce rate
+          - delivery failure rate
+          - email bounce rate
+          - failed delivery rate
+          - hard bounce rate
+          - undeliverable rate
+        description: 'Percentage of emails that bounced (undeliverable). Formula: (bounces / sends) * 100. Premium automotive benchmark (2024-2025): <1.5% is healthy, 1.5-2.5% is warning, >2.5% is critical. High bounce rate indicates list quality issues requiring attention.'
+        expr: ROUND(SUM(BOUNCES) / NULLIF(SUM(SENDS), 0), 3)
+        access_modifier: public_access
+      - name: BOUNCE_RATE_PCT
+        synonyms:
+          - bounce percent
+          - bounce rate percent
+          - bounce rate percentage
+          - BR percent
+          - delivery failure percent
+          - email bounce percent
+          - failed delivery percentage
+          - undeliverable percent
+        description: 'Calculates the percentage of emails that bounced (undeliverable), rounded to 1 decimal (e.g., 1.5%). Formula: (bounces / sends) * 100. Premium automotive benchmark (2024-2025): <1.5% is healthy, >2.5% is critical requiring immediate action.'
+        expr: ROUND(100.0 * SUM(BOUNCES) / NULLIF(SUM(SENDS), 0), 1)
+        access_modifier: public_access
+      - name: CLICK_RATE
+        synonyms:
+          - click percentage
+          - click rate
+          - click ratio
+          - click through rate
+          - click-through rate
+          - clickthrough rate
+          - CTR
+          - email CTR
+        description: |
+          Percentage of unique clicks out of delivered emails (Click-Through Rate / CTR). Formula: (unique_clicks / delivered) * 100, where delivered = sends - bounces. Use for questions about 'click rate', 'CTR', 'click-through rate'. Premium automotive benchmark (2024-2025): 1.5-3% is good, >3% is strong.
+        expr: ROUND(SUM(UNIQUE_CLICKS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 3)
+        access_modifier: public_access
+      - name: CLICK_RATE_PCT
+        synonyms:
+          - click rate pct
+          - click rate percent
+          - click rate percentage
+          - click-through percentage
+          - clickthrough percent
+          - CTR percent
+          - CTR percentage
+          - email click percent
+        description: 'Calculates the percentage of unique clicks out of delivered emails (CTR), rounded to 1 decimal (e.g., 2.5%). Formula: (unique_clicks / delivered) * 100. Use when questions ask about ''click rate'', ''CTR'', ''click-through rate'', or ''email engagement''. Premium automotive benchmark (2024-2025): 1.5-3% is good.'
+        expr: ROUND(100.0 * SUM(UNIQUE_CLICKS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 1)
+        access_modifier: public_access
+      - name: CLICK_TO_OPEN_RATE
+        synonyms:
+          - click to open rate
+          - click to open ratio
+          - click-to-open rate
+          - clicks per open
+          - content effectiveness rate
+          - CTO rate
+          - CTOR
+          - email engagement rate
+          - engagement rate
+          - open to click rate
+        description: |
+          Percentage of unique opens that resulted in unique clicks (CTOR). Formula: (unique_clicks / unique_opens) * 100. PRIMARY ENGAGEMENT METRIC - most reliable due to Apple MPP impact on open rates. Measures content effectiveness for those who opened. Premium automotive benchmark (2024-2025): 12-18% is good, >18% is strong.
+        expr: ROUND(SUM(UNIQUE_CLICKS) / NULLIF(SUM(UNIQUE_OPENS), 0), 3)
+        access_modifier: public_access
+      - name: CLICK_TO_OPEN_RATE_PCT
+        synonyms:
+          - click to open percent
+          - click-to-open percentage
+          - clicks per open percent
+          - content effectiveness percent
+          - CTO percent
+          - CTOR percent
+          - CTOR percentage
+          - engagement percent
+        description: 'Calculates the percentage of unique opens that resulted in unique clicks (CTOR), rounded to 1 decimal (e.g., 15.2%). PRIMARY ENGAGEMENT METRIC - most reliable due to Apple MPP. Formula: (unique_clicks / unique_opens) * 100. Premium automotive benchmark (2024-2025): 12-18% is good, >18% is strong.'
+        expr: ROUND(100.0 * SUM(UNIQUE_CLICKS) / NULLIF(SUM(UNIQUE_OPENS), 0), 1)
+        access_modifier: public_access
+      - name: FIRST_SEND_DATE
+        synonyms:
+          - beginning date
+          - data start
+          - earliest activity
+          - earliest date
+          - earliest send
+          - first campaign date
+          - first email date
+          - first send date
+          - initial send date
+          - start date
+        description: Returns the earliest date when emails were sent in the dataset. Use when questions ask about 'first send date', 'earliest campaign', 'data history start', 'initial activity', or 'data coverage start date'. Helps understand historical data coverage, identify when email marketing began, and determine the full reporting period span.
+        expr: MIN(SEND_DATE)
+        access_modifier: public_access
+      - name: LAST_SEND_DATE
+        synonyms:
+          - data end
+          - end date
+          - final send date
+          - last campaign date
+          - last send date
+          - latest date
+          - latest email date
+          - latest send
+          - most recent activity
+          - most recent date
+        description: Returns the most recent date when emails were sent in the dataset. Use when questions ask about 'latest send date', 'most recent campaign', 'data freshness', 'last activity', or 'data coverage end date'. Helps understand data currency and latest campaign activity.
+        expr: MAX(SEND_DATE)
+        access_modifier: public_access
+      - name: NUM_SEND_DAYS
+        synonyms:
+          - active days
+          - active send days
+          - campaign days
+          - days active
+          - days with sends
+          - distinct days
+          - email activity days
+          - number of days
+          - send days
+          - sending days
+        description: Counts the number of distinct days on which emails were sent. Use when questions ask about 'number of send days', 'active sending days', 'campaign frequency', 'how many days with activity', or 'sending day count'. Helps analyze email marketing activity patterns and operational consistency.
+        expr: COUNT(DISTINCT SEND_DATE)
+        access_modifier: public_access
+      - name: OPEN_RATE
+        synonyms:
+          - email open rate
+          - open metric
+          - open percentage
+          - open rate
+          - open ratio
+          - opening rate
+          - OR
+        description: |
+          Percentage of unique opens out of delivered emails. Formula: (unique_opens / delivered) * 100, where delivered = sends - bounces. Use for questions about 'open rate', 'email open percentage', 'open ratio'. Premium automotive benchmark (2024-2025): 15-25% is good, >25% is strong.
+        expr: ROUND(SUM(UNIQUE_OPENS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 3)
+        access_modifier: public_access
+      - name: OPEN_RATE_PCT
+        synonyms:
+          - email open percent
+          - open rate pct
+          - open rate percent
+          - open rate percentage
+          - opening percentage
+          - OR percent
+          - unique open percentage
+        description: 'Calculates the percentage of unique opens out of delivered emails, rounded to 1 decimal (e.g., 22.5%). Formula: (unique_opens / delivered) * 100. Use when questions ask about ''open rate'', ''email open percentage'', ''open ratio'', or ''email reach''. Premium automotive benchmark (2024-2025): 15-25% is good.'
+        expr: ROUND(100.0 * SUM(UNIQUE_OPENS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 1)
+        access_modifier: public_access
+      - name: TOTAL_BOUNCES
+        synonyms:
+          - bounce count
+          - bounced emails
+          - delivery failures
+          - failed deliveries
+          - failed sends
+          - hard bounces
+          - rejected emails
+          - soft bounces
+          - total bounces
+          - undeliverable emails
+          - undelivered emails
+        description: |
+          Total number of bounced emails (undeliverable). Monitor for list health assessment. Use when questions ask about 'total bounces', 'bounced emails', 'failed deliveries', 'undelivered emails', or 'delivery failures'.
+        expr: SUM(BOUNCES)
+        access_modifier: public_access
+      - name: TOTAL_CLICKS
+        synonyms:
+          - all clicks
+          - click count
+          - click volume
+          - email clicks
+          - gross clicks
+          - total clicks
+        description: |
+          Total number of clicks on email links. Includes multiple clicks by the same recipient (gross clicks). Measures overall engagement with email content. Use when questions ask about 'total clicks', 'all clicks', 'gross clicks', or 'click count'.
+        expr: SUM(CLICKS)
+        access_modifier: public_access
+      - name: TOTAL_DELIVERED
+        synonyms:
+          - delivered count
+          - delivered emails
+          - emails delivered
+          - net sends
+          - successful deliveries
+          - total delivered
+        description: |
+          Total number of clicks on email links. Includes multiple clicks by the same recipient (gross clicks). Measures overall engagement with email content. Use when questions ask about 'total clicks', 'all clicks', 'gross clicks', or 'click count'.
+        expr: SUM(SENDS) - SUM(BOUNCES)
+        access_modifier: public_access
+      - name: TOTAL_OPENS
+        synonyms:
+          - all opens
+          - email opens
+          - gross opens
+          - open count
+          - total opens
+        description: |
+          Total number of email opens across all recipients. Includes multiple opens by the same recipient (gross opens). Use when questions ask about 'total opens', 'all opens', 'gross opens', or 'open count'.
+        expr: SUM(OPENS)
+        access_modifier: public_access
+      - name: TOTAL_SENDS
+        synonyms:
+          - all sends
+          - email volume
+          - emails sent
+          - send count
+          - send volume
+          - total emails
+          - total sends
+        description: Total number of email opens across all recipients. Includes multiple opens by the same recipient (gross opens). Use when questions ask about 'total opens', 'all opens', 'gross opens', or 'open count'.
+        expr: SUM(SENDS)
+        access_modifier: public_access
+      - name: TOTAL_UNIQUE_CLICKS
+        synonyms:
+          - distinct clicks
+          - individual clicks
+          - net clicks
+          - unique click count
+          - unique clickers
+          - unique clicks
+        description: Total unique recipients who clicked (deduplicated count). More accurate for measuring engagement than total clicks. Use when questions ask about 'unique clicks', 'distinct clicks', 'individual clicks', or 'net clicks'.
+        expr: SUM(UNIQUE_CLICKS)
+        access_modifier: public_access
+      - name: TOTAL_UNIQUE_OPENS
+        synonyms:
+          - distinct opens
+          - individual opens
+          - net opens
+          - unique open count
+          - unique openers
+          - unique opens
+        description: Total unique recipients who opened emails (deduplicated count). More accurate for measuring reach than total opens. Use when questions ask about 'unique opens', 'distinct opens', 'individual opens', or 'net opens'.
+        expr: SUM(UNIQUE_OPENS)
+        access_modifier: public_access
+      - name: TOTAL_UNSUBSCRIBES
+        synonyms:
+          - churn count
+          - opt-out count
+          - opt-outs
+          - optouts
+          - total unsubscribes
+          - unsubscribe count
+        description: |
+          Total number of opt-outs/unsubscribes from email list. Use when questions ask about 'total unsubscribes', 'opt-outs', 'unsubscribe count', or 'churn count'. Monitor for email fatigue and content relevance.
+        expr: SUM(UNSUBSCRIBES)
+        access_modifier: public_access
+      - name: UNIQUE_CLICK_RATE
+        synonyms:
+          - deduplicated click rate
+          - distinct click rate
+          - individual click rate
+          - net click rate
+          - UCR
+          - unique click rate
+        description: |
+          Percentage of unique recipients who clicked out of delivered emails. Formula: (unique_clicks / delivered) * 100, where delivered = sends - bounces. Same calculation as CLICK_RATE - kept for compatibility and clarity.
+        expr: ROUND(SUM(UNIQUE_CLICKS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 3)
+        access_modifier: public_access
+      - name: UNIQUE_OPEN_RATE
+        synonyms:
+          - deduplicated open rate
+          - distinct open rate
+          - individual open rate
+          - net open rate
+          - unique open rate
+          - UOR
+        description: |
+          Percentage of unique recipients who opened out of delivered emails. Formula: (unique_opens / delivered) * 100, where delivered = sends - bounces. Same calculation as OPEN_RATE - kept for compatibility and clarity.
+        expr: ROUND(SUM(UNIQUE_OPENS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 3)
+        access_modifier: public_access
+      - name: UNSUBSCRIBE_RATE
+        synonyms:
+          - attrition rate
+          - churn rate
+          - opt out rate
+          - opt-out rate
+          - optout rate
+          - unsub rate
+          - unsubscribe rate
+        description: |
+          Percentage of recipients who opted out/unsubscribed. Formula: (unsubscribes / sends) * 100. Premium automotive benchmark (2024-2025): <0.25% is healthy, 0.25-0.4% is warning, >0.4% is critical. Note: Gmail 2024 changes made unsubscribing easier, so rates industry-wide have increased.
+        expr: ROUND(SUM(UNSUBSCRIBES) / NULLIF(SUM(SENDS), 0), 3)
+        access_modifier: public_access
+      - name: UNSUBSCRIBE_RATE_PCT
+        synonyms:
+          - churn rate percent
+          - opt-out percentage
+          - unsubscribe percentage
+          - unsubscribe rate percent
+        description: 'Calculates the percentage of recipients who opted out/unsubscribed, rounded to 1 decimal (e.g., 0.3%). Formula: (unsubscribes / sends) * 100. Premium automotive benchmark (2024-2025): <0.25% is healthy, >0.4% is critical. Note: Gmail 2024 changes increased rates industry-wide.'
+        expr: ROUND(100.0 * SUM(UNSUBSCRIBES) / NULLIF(SUM(SENDS), 0), 1)
+        access_modifier: public_access
+    primary_key:
+      columns:
+        - COMP_KEY
+relationships:
+  - name: FACT_TO_CAMPAIGN_METADATA
+    left_table: V_FACT_SFMC_PERFORMANCE_TRACKING
+    right_table: V_DIM_SFMC_METADATA_JOB
+    relationship_columns:
+      - left_column: COMP_KEY
+        right_column: COMP_KEY
+    relationship_type: many_to_one
+    join_type: left_outer
+  - name: FACT_TO_COUNTRY
+    left_table: V_FACT_SFMC_PERFORMANCE_TRACKING
+    right_table: V_DIM_COUNTRY
+    relationship_columns:
+      - left_column: BUSINESS_UNIT
+        right_column: VC_COUNTRY_CODE
+    relationship_type: many_to_one
+    join_type: left_outer
+verified_queries:
+  - name: OVERALL_OPEN_RATE
+    sql: |-
+      SELECT
+        ROUND(
+          SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS open_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_opens) AS total_unique_opens
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+    question: What is the overall open rate?
+    verified_at: 1767108664
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: OVERALL_CLICK_RATE
+    sql: |-
+      SELECT
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS click_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_clicks) AS total_unique_clicks
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+    question: What is the overall click rate?
+    verified_at: 1767108654
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: OVERALL_CTOR
+    sql: |-
+      SELECT
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),
+          1
+        ) AS click_to_open_rate_pct,
+        SUM(f.unique_opens) AS total_unique_opens,
+        SUM(f.unique_clicks) AS total_unique_clicks
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+    question: What is the click-to-open rate?
+    verified_at: 1767108724
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: BUSINESS_UNIT_COUNT
+    sql: |-
+      SELECT
+        COUNT(DISTINCT f.business_unit) AS num_business_units,
+        MIN(f.send_date) AS data_from,
+        MAX(f.send_date) AS data_to
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      INNER JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+    question: How many business units do we have?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: ALL_MARKETS_PERFORMANCE_SUMMARY
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        c.region_name_group AS region,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_opens) AS total_unique_opens,
+        SUM(f.unique_clicks) AS total_unique_clicks,
+        SUM(f.unsubscribes) AS total_unsubscribes,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY f.business_unit, c.country_name, c.region_name_group
+      ORDER BY total_sends DESC
+    question: Show me the performance summary for all markets
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: YTD_PERFORMANCE_SUMMARY
+    sql: |-
+      SELECT 
+        DATE_TRUNC('YEAR', CURRENT_DATE) AS year_start,
+        CURRENT_DATE AS as_of_date,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_opens) AS total_unique_opens,
+        SUM(f.unique_clicks) AS total_unique_clicks,
+        SUM(f.unsubscribes) AS total_unsubscribes,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('YEAR', CURRENT_DATE)
+        AND f.send_date < CURRENT_DATE
+    question: What is our year-to-date email performance?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: OPEN_RATE_LAST_MONTH_GLOBAL
+    sql: |-
+      SELECT
+        ROUND(
+          SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS open_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_opens) AS total_unique_opens,
+        DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE)) AS month
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        AND program_or_compaign = 'Campaign'
+    question: What was the open rate for last month's global eDM campaign?
+    verified_at: 1767120780
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: CTR_TREND_EUROPE_6MONTHS
+    sql: |-
+      SELECT
+        DATE_TRUNC('MONTH', f.send_date) AS month,
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS click_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_clicks) AS total_unique_clicks
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+        AND c.region_name_group = 'EMEA'
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+      GROUP BY
+        DATE_TRUNC('MONTH', f.send_date)
+      ORDER BY
+        month DESC
+    question: Show me the click-through rate trend for the past six months in Europe
+    verified_at: 1767120867
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: GERMANY_VS_EUROPE_AVERAGE
+    sql: |-
+      WITH germany_stats AS (
+        SELECT
+          c.country_name AS market,
+          ROUND(
+            SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+            1
+          ) AS open_rate_pct,
+          ROUND(
+            SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+            1
+          ) AS click_rate_pct,
+          ROUND(
+            SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),
+            1
+          ) AS click_to_open_rate_pct,
+          ROUND(
+            SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),
+            2
+          ) AS unsubscribe_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE
+          (
+            m.email_name NOT ILIKE '%sparkpost%'
+            OR m.email_name IS NULL
+          )
+          AND f.business_unit = 'VCDE'
+        GROUP BY c.country_name    
+      ),
+      europe_stats AS (
+        SELECT
+          'Europe Average' AS market,
+          ROUND(
+            SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+            1
+          ) AS open_rate_pct,
+          ROUND(
+            SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+            1
+          ) AS click_rate_pct,
+          ROUND(
+            SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),
+            1
+          ) AS click_to_open_rate_pct,
+          ROUND(
+            SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),
+            2
+          ) AS unsubscribe_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE
+          (
+            m.email_name NOT ILIKE '%sparkpost%'
+            OR m.email_name IS NULL
+          )
+          AND c.region_name_group = 'EMEA'
+      )
+      SELECT
+        *
+      FROM
+        germany_stats
+      UNION ALL
+      SELECT
+        *
+      FROM
+        europe_stats
+    question: How does Germany's email performance compare to the European average?
+    verified_at: 1767126036
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: TOP_CAMPAIGNS_Q3_ENGAGEMENT
+    sql: |-
+      SELECT
+        m.email_name AS campaign_name,
+        m.program_or_compaign AS type,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(
+          SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS open_rate_pct,
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS click_rate_pct,
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),
+          1
+        ) AS click_to_open_rate_pct
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+        AND f.send_date >= '2025-07-01'
+        AND f.send_date < '2025-10-01'
+        AND program_or_compaign = 'Campaign'
+      GROUP BY
+        m.email_name,
+        m.program_or_compaign
+      HAVING
+        SUM(f.sends) > 100
+      ORDER BY
+        click_rate_pct DESC
+      LIMIT
+        10
+    question: Which campaign achieved the highest engagement in Q3?
+    verified_at: 1767125945
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: MARKET_COMPARISON_FR_ES_IT
+    sql: |-
+      WITH filtered AS (
+        SELECT
+          f.business_unit,
+          f.comp_key,
+          f.send_date,
+          f.unique_opens,
+          f.unique_clicks,
+          f.sends,
+          f.bounces,
+          m.email_name
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+          INNER JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        WHERE
+          m.email_name NOT ILIKE '%sparkpost%'
+          AND f.business_unit IN ('VCFR', 'VCES', 'VCIT')
+          AND program_or_compaign = 'Campaign'
+      ),
+      ranked AS (
+        SELECT
+          filtered.*,
+          ROW_NUMBER() OVER (
+            PARTITION BY business_unit
+            ORDER BY
+              send_date DESC
+          ) AS rn
+        FROM
+          filtered
+      )
+      SELECT
+        r.business_unit AS market,
+        c.country_name AS market_name,
+        r.email_name,
+        r.send_date AS latest_date,
+        ROUND(
+          SUM(r.unique_opens) * 100.0 / NULLIF(SUM(r.sends) - SUM(r.bounces), 0),
+          1
+        ) AS open_rate_pct,
+        ROUND(
+          SUM(r.unique_clicks) * 100.0 / NULLIF(SUM(r.sends) - SUM(r.bounces), 0),
+          1
+        ) AS click_rate_pct,
+        SUM(r.sends) AS total_sends,
+        SUM(r.sends) - SUM(r.bounces) AS total_delivered
+      FROM
+        ranked r
+        INNER JOIN V_DIM_COUNTRY c ON r.business_unit = c.vc_country_code
+      WHERE
+        r.rn = 1
+      GROUP BY
+        r.business_unit,
+        c.country_name,
+        r.email_name,
+        r.send_date
+      ORDER BY
+        open_rate_pct DESC;
+    question: Compare open rates for France, Spain, and Italy for the most recent campaign
+    verified_at: 1767123484
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: SPAIN_OPTOUT_VS_EU_Q3
+    sql: |-
+      WITH spain_stats AS (
+        SELECT
+          c.country_name AS market_name,
+          ROUND(
+            SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),
+            2
+          ) AS unsubscribe_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE
+          (
+            m.email_name NOT ILIKE '%sparkpost%'
+            OR m.email_name IS NULL
+          )
+          AND f.business_unit = 'VCES'
+          AND f.send_date >= '2025-07-01'
+          AND f.send_date < '2025-10-01'
+        GROUP BY
+          c.country_name
+      ),
+      eu_stats AS (
+        SELECT
+          'EU Average' AS market,
+          ROUND(
+            SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),
+            2
+          ) AS unsubscribe_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE
+          (
+            m.email_name NOT ILIKE '%sparkpost%'
+            OR m.email_name IS NULL
+          )
+          AND c.region_name_group = 'EMEA'
+          AND f.send_date >= '2025-07-01'
+          AND f.send_date < '2025-10-01'
+      )
+      SELECT
+        *
+      FROM
+        spain_stats
+      UNION ALL
+      SELECT
+        *
+      FROM
+        eu_stats
+    question: What is Spain's opt-out rate compared to the EU average in Q3?
+    verified_at: 1767125252
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: EX30_NL_VS_BE_COMPARISON
+    sql: |-
+      SELECT
+        f.business_unit AS market,
+        c.country_name AS market_name,
+        ROUND(
+          SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS open_rate_pct,
+        ROUND(
+          SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),
+          1
+        ) AS click_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+        AND f.business_unit IN ('VCNL', 'VCBE')
+        AND m.program_or_compaign = 'Campaign'
+        AND UPPER(TRIM(m.car_model)) = 'EX30'
+      GROUP BY
+        f.business_unit,
+        c.country_name
+      ORDER BY
+        open_rate_pct DESC
+    question: Compare open and click rates for EX30 campaigns in NL versus BE
+    verified_at: 1767125098
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: HIGH_OPTOUT_MARKETS
+    sql: |-
+      SELECT
+        f.business_unit AS market,
+        c.country_name AS market_name,
+        ROUND(
+          SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),
+          2
+        ) AS unsubscribe_rate_pct,
+        SUM(f.sends) AS total_sends,
+        SUM(f.unsubscribes) AS total_unsubscribes,
+        CASE
+          WHEN SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0) > 1.0 THEN 'Critical'
+          WHEN SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0) > 0.5 THEN 'Warning'
+          ELSE 'OK'
+        END AS status
+      FROM
+        V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      INNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE
+        (
+          m.email_name NOT ILIKE '%sparkpost%'
+          OR m.email_name IS NULL
+        )
+      GROUP BY
+        f.business_unit,
+        c.country_name
+      HAVING
+        SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0) > 0.5
+      ORDER BY
+        unsubscribe_rate_pct DESC
+    question: Summarize all markets where the opt-out rate exceeds 0.5%
+    verified_at: 1767125451
+    verified_by: Li Ma
+    use_as_onboarding_question: true
+  - name: PERFORMANCE_SUMMARY_APAC
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND c.region_name_group = 'APEC'
+      GROUP BY f.business_unit, c.country_name
+      ORDER BY total_sends DESC
+    question: Show me the email performance summary for Asia Pacific region
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PERFORMANCE_SUMMARY_LATAM
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND c.region_name_group = 'LATAM'
+      GROUP BY f.business_unit, c.country_name
+      ORDER BY total_sends DESC
+    question: Show me the email performance for Latin America
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PERFORMANCE_SUMMARY_USCAN
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND c.region_name_group = 'US/CAN'
+      GROUP BY f.business_unit, c.country_name
+      ORDER BY total_sends DESC
+    question: Show me the email performance for North America
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: REGIONAL_PERFORMANCE_COMPARISON
+    sql: |-
+      SELECT 
+        c.region_name_group AS region,
+        COUNT(DISTINCT f.business_unit) AS num_markets,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY c.region_name_group
+      ORDER BY total_sends DESC
+    question: How do the different regions compare in email performance?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: MONTHLY_PERFORMANCE_TREND_GLOBAL
+    sql: |-
+      SELECT 
+        DATE_TRUNC('MONTH', f.send_date) AS month,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -12, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+      GROUP BY DATE_TRUNC('MONTH', f.send_date)
+      ORDER BY month DESC
+    question: What is the monthly performance trend for all email campaigns?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: QUARTERLY_PERFORMANCE_TREND
+    sql: |-
+      SELECT 
+        DATE_TRUNC('QUARTER', f.send_date) AS quarter,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -8, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)
+      GROUP BY DATE_TRUNC('QUARTER', f.send_date)
+      ORDER BY quarter DESC
+    question: What is the quarterly performance trend?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: WEEK_OVER_WEEK_PERFORMANCE
+    sql: |-
+      SELECT 
+        CASE 
+          WHEN f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE)) 
+               AND f.send_date < DATE_TRUNC('WEEK', CURRENT_DATE) 
+          THEN 'Last Week'
+          ELSE 'Previous Week'
+        END AS period,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -2, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('WEEK', CURRENT_DATE)
+      GROUP BY CASE 
+        WHEN f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE)) 
+             AND f.send_date < DATE_TRUNC('WEEK', CURRENT_DATE) 
+        THEN 'Last Week'
+        ELSE 'Previous Week'
+      END
+      ORDER BY period DESC
+    question: How did last week compare to the week before?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: MONTH_OVER_MONTH_COMPARISON
+    sql: |-
+      SELECT 
+        CASE 
+          WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'
+          ELSE 'Last Month'
+        END AS period,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))
+      GROUP BY CASE 
+        WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'
+        ELSE 'Last Month'
+      END
+      ORDER BY period DESC
+    question: How does this month compare to last month?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: SEND_VOLUME_BY_DAY_OF_WEEK
+    sql: |-
+      SELECT 
+        DAYNAME(f.send_date) AS day_of_week,
+        DAYOFWEEKISO(f.send_date) AS day_num,
+        COUNT(DISTINCT f.send_date) AS num_send_days,
+        SUM(f.sends) AS total_sends,
+        ROUND(AVG(f.sends), 0) AS avg_sends_per_day,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+      GROUP BY DAYNAME(f.send_date), DAYOFWEEKISO(f.send_date)
+      ORDER BY day_num
+    question: Which days of the week do we send the most emails?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: TOP_CAMPAIGNS_LAST_QUARTER_ENGAGEMENT
+    sql: |-
+      SELECT 
+        m.email_name AS campaign_name, 
+        m.car_model, 
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct, 
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct, 
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct 
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f 
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key 
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)
+      GROUP BY m.email_name, m.car_model 
+      HAVING SUM(f.sends) > 100 
+      ORDER BY click_to_open_rate_pct DESC NULLS LAST 
+      LIMIT 10
+    question: Which campaign achieved the highest engagement in last quarter?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: TOP_5_CAMPAIGNS_LAST_MONTH
+    sql: |-
+      SELECT 
+        m.email_name AS campaign_name, 
+        m.car_model, 
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        SUM(f.unique_clicks) AS total_unique_clicks, 
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct, 
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct 
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f 
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key 
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+      GROUP BY m.email_name, m.car_model 
+      HAVING SUM(f.sends) > 50 
+      ORDER BY click_rate_pct DESC NULLS LAST 
+      LIMIT 5
+    question: List the top five campaigns by conversion rate in last month
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: TOP_PERFORMING_CAMPAIGNS_OVERALL
+    sql: |-
+      SELECT 
+        m.email_name AS campaign_name,
+        COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,
+        m.program_or_compaign AS campaign_type,
+        COUNT(DISTINCT f.business_unit) AS num_markets,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.email_name, m.car_model, m.program_or_compaign
+      HAVING SUM(f.sends) > 500
+      ORDER BY click_to_open_rate_pct DESC NULLS LAST
+      LIMIT 20
+    question: What are the top performing campaigns by engagement?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: RECENT_CAMPAIGN_PERFORMANCE
+    sql: |-
+      SELECT 
+        m.email_name AS campaign_name,
+        COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,
+        MIN(f.send_date) AS first_send_date,
+        MAX(f.send_date) AS last_send_date,
+        COUNT(DISTINCT f.business_unit) AS num_markets,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATEADD('DAY', -30, CURRENT_DATE)
+      GROUP BY m.email_name, m.car_model
+      ORDER BY first_send_date DESC
+    question: What campaigns were sent in the last 30 days and how did they perform?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BOTTOM_PERFORMING_MARKETS
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        c.region_name_group AS region,
+        SUM(f.sends) AS total_sends,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY f.business_unit, c.country_name, c.region_name_group
+      HAVING SUM(f.sends) > 1000
+      ORDER BY click_to_open_rate_pct ASC NULLS LAST
+      LIMIT 10
+    question: Which markets have the lowest email engagement?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BOUNCE_RATE_BY_MARKET
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        c.region_name_group AS region,
+        SUM(f.sends) AS total_sends,
+        SUM(f.bounces) AS total_bounces,
+        ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+        CASE 
+          WHEN SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0) > 5 THEN 'Critical - List Cleanup Needed'
+          WHEN SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0) > 2 THEN 'Warning - Monitor'
+          ELSE 'Healthy'
+        END AS status
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY f.business_unit, c.country_name, c.region_name_group
+      HAVING SUM(f.sends) > 500
+      ORDER BY bounce_rate_pct DESC
+    question: Which markets have the highest bounce rates?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: SPAIN_OPTOUT_VS_EU_LAST_QUARTER
+    sql: |-
+      SELECT 
+        ROUND(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.unsubscribes END) * 100.0 / 
+              NULLIF(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.sends END), 0), 2) AS spain_unsubscribe_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS eu_avg_unsubscribe_rate_pct,
+        ROUND(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.unsubscribes END) * 100.0 / 
+              NULLIF(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.sends END), 0), 2) - 
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS difference_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND c.region_name_group = 'EMEA'
+        AND f.send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)
+    question: What is Spain's opt-out rate compared to the EU average in last quarter?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: CLICK_RATE_VCUK_MONTHLY
+    sql: |-
+      SELECT
+        DATE_TRUNC('MONTH', f.send_date) AS month,
+        SUM(f.unique_clicks) AS total_unique_clicks,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.business_unit = 'VCUK'
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+      GROUP BY DATE_TRUNC('MONTH', f.send_date)
+      ORDER BY month DESC
+    question: What is the monthly click rate (clicks divided by sends) for business unit 'VCUK' for the last 6 months?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PROGRAM_VS_CAMPAIGN_PERFORMANCE
+    sql: |-
+      SELECT 
+        COALESCE(m.program_or_compaign, 'Unknown') AS email_type,
+        COUNT(DISTINCT m.email_name) AS num_emails,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.program_or_compaign
+      ORDER BY total_sends DESC
+    question: How do Programs compare to Campaigns in performance?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: FIRST_YEAR_PROGRAM_PERFORMANCE
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND m.program_or_compaign = 'Program'
+        AND m.program_names ILIKE '%first-year-program%'
+      GROUP BY f.business_unit, c.country_name
+      HAVING SUM(f.sends) > 100
+      ORDER BY click_to_open_rate_pct DESC
+    question: How is the First Year Program performing?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: ORDER_TO_DELIVERY_PROGRAM_PERFORMANCE
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND m.program_or_compaign = 'Program'
+        AND m.program_names ILIKE '%order-to-delivery%'
+      GROUP BY f.business_unit, c.country_name
+      HAVING SUM(f.sends) > 100
+      ORDER BY click_to_open_rate_pct DESC
+    question: How is the Order to Delivery program performing?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: LEAD_NURTURE_PROGRAM_PERFORMANCE
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND m.program_or_compaign = 'Program'
+        AND (m.program_names ILIKE '%lead-nurture%' OR m.program_names ILIKE '%LNP%')
+      GROUP BY f.business_unit, c.country_name
+      HAVING SUM(f.sends) > 100
+      ORDER BY click_to_open_rate_pct DESC
+    question: How is the Lead Nurture program performing?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: ENEWSLETTER_PERFORMANCE_BY_MARKET
+    sql: |-
+      SELECT 
+        f.business_unit AS market,
+        c.country_name,
+        COUNT(DISTINCT m.email_name) AS num_newsletters,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND m.program_or_compaign = 'E-newsletter'
+      GROUP BY f.business_unit, c.country_name
+      HAVING SUM(f.sends) > 100
+      ORDER BY total_sends DESC
+    question: How are e-newsletters performing by market?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: DIRECT_ENGINE_VS_ODE_PERFORMANCE
+    sql: |-
+      SELECT 
+        COALESCE(m.email_send_process, 'Not Specified') AS send_process,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.email_send_process
+      ORDER BY total_sends DESC
+    question: How does Direct Engine compare to Outside Direct Engine emails?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PERFORMANCE_BY_EMAIL_SOURCE
+    sql: |-
+      SELECT 
+        COALESCE(m.email_source, 'Not Specified') AS source,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.email_source
+      ORDER BY total_sends DESC
+    question: How does Catalyst compare to SFMC as an email source?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PERFORMANCE_BY_GEOGRAPHIC_SCOPE
+    sql: |-
+      SELECT 
+        COALESCE(m.geographic_scope, 'Not Specified') AS scope,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.geographic_scope
+      ORDER BY total_sends DESC
+    question: How do central campaigns compare to local campaigns?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: CAR_MODEL_PERFORMANCE_COMPARISON
+    sql: |-
+      SELECT 
+        COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified')
+      HAVING SUM(f.sends) > 100
+      ORDER BY total_sends DESC
+    question: How do different car models perform in email campaigns?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: PERFORMANCE_BY_LANGUAGE
+    sql: |-
+      SELECT 
+        COALESCE(m.email_language, 'Not Specified') AS language,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.email_language
+      HAVING SUM(f.sends) > 100
+      ORDER BY total_sends DESC
+    question: How does email performance vary by language?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: D2C_VS_TRADITIONAL_MARKET_PERFORMANCE
+    sql: |-
+      SELECT 
+        CASE 
+          WHEN f.business_unit = 'VCUK' THEN 'D2C (UK)'
+          ELSE 'Traditional Markets'
+        END AS market_type,
+        COUNT(DISTINCT f.business_unit) AS num_markets,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+        ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY CASE 
+          WHEN f.business_unit = 'VCUK' THEN 'D2C (UK)'
+          ELSE 'Traditional Markets'
+        END
+      ORDER BY total_sends DESC
+    question: How does UK (D2C market) compare to traditional markets?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: AB_TEST_CAMPAIGN_PERFORMANCE
+    sql: |-
+      SELECT 
+        CASE WHEN m.ab_testing IS NOT NULL THEN 'AB Test' ELSE 'Non-AB Test' END AS test_type,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY CASE WHEN m.ab_testing IS NOT NULL THEN 'AB Test' ELSE 'Non-AB Test' END
+      ORDER BY total_sends DESC
+    question: How do AB test campaigns perform?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: EDM_SEQUENCE_PERFORMANCE
+    sql: |-
+      SELECT 
+        COALESCE(m.email_send_number, 'Not Specified') AS edm_number,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.email_send_number
+      HAVING SUM(f.sends) > 100
+      ORDER BY edm_number
+    question: How do different EDM sends (EDM1, EDM2, etc.) perform?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: COMPLIANT_VS_NON_COMPLIANT_PERFORMANCE
+    sql: |-
+      SELECT 
+        COALESCE(m.compliant, 'Not Specified') AS compliance_status,
+        COUNT(DISTINCT m.email_name) AS num_campaigns,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+      GROUP BY m.compliant
+      ORDER BY total_sends DESC
+    question: How do compliant emails compare to non-compliant?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: WEEKEND_VS_WEEKDAY_PERFORMANCE
+    sql: |-
+      SELECT 
+        CASE WHEN DAYOFWEEKISO(f.send_date) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END AS day_type,
+        COUNT(DISTINCT f.send_date) AS num_send_days,
+        SUM(f.sends) AS total_sends,
+        SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+        ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+      GROUP BY CASE WHEN DAYOFWEEKISO(f.send_date) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END
+      ORDER BY total_sends DESC
+    question: How do weekend sends compare to weekday sends?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: AVAILABLE_COUNTRIES_REGIONS
+    sql: |-
+      SELECT
+        vc_country_code,
+        country_name,
+        country_code,
+        region,
+        region_name_group,
+        sales_area,
+        market_cd
+      FROM V_DIM_COUNTRY
+      ORDER BY region_name_group, country_name
+    question: What countries and regions are available in our email marketing database?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: AVAILABLE_CAMPAIGNS_METADATA
+    sql: |-
+      SELECT
+        comp_key,
+        send_id,
+        business_unit,
+        email_name,
+        email_subject_line,
+        car_model,
+        program_or_compaign,
+        program_names,
+        email_source,
+        email_send_process,
+        geographic_scope,
+        email_language,
+        email_version,
+        send_date
+      FROM V_DIM_SFMC_METADATA_JOB
+      WHERE email_name NOT ILIKE '%sparkpost%'
+      ORDER BY send_date DESC
+      LIMIT 1000
+    question: What email campaigns and their metadata are available in our system?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_THRESHOLDS_CTOR
+    sql: |-
+      SELECT 
+          STATUS,
+          STATUS_LABEL,
+          CASE 
+              WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'
+              WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'
+              ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'
+          END AS threshold_range,
+          DESCRIPTION,
+          ACTION_REQUIRED
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE METRIC_NAME = 'ctor'
+        AND EMAIL_TYPE = 'all'
+        AND STATUS != 'info'
+      ORDER BY 
+          CASE STATUS 
+              WHEN 'critical' THEN 1 
+              WHEN 'warning' THEN 2 
+              WHEN 'good' THEN 3 
+              WHEN 'strong' THEN 4 
+              WHEN 'excellent' THEN 5 
+          END
+    question: What are the CTOR benchmarks?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_THRESHOLDS_OPEN_RATE
+    sql: |-
+      SELECT 
+          STATUS,
+          STATUS_LABEL,
+          CASE 
+              WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'
+              WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'
+              ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'
+          END AS threshold_range,
+          DESCRIPTION,
+          ACTION_REQUIRED
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE METRIC_NAME = 'open_rate'
+        AND EMAIL_TYPE = 'all'
+        AND STATUS != 'info'
+      ORDER BY 
+          CASE STATUS 
+              WHEN 'critical' THEN 1 
+              WHEN 'warning' THEN 2 
+              WHEN 'good' THEN 3 
+              WHEN 'strong' THEN 4 
+              WHEN 'excellent' THEN 5 
+          END
+    question: What is a good open rate?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_THRESHOLDS_CLICK_RATE
+    sql: |-
+      SELECT 
+          STATUS,
+          STATUS_LABEL,
+          CASE 
+              WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'
+              WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'
+              ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'
+          END AS threshold_range,
+          DESCRIPTION,
+          ACTION_REQUIRED
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE METRIC_NAME = 'click_rate'
+        AND EMAIL_TYPE = 'all'
+        AND STATUS != 'info'
+      ORDER BY 
+          CASE STATUS 
+              WHEN 'critical' THEN 1 
+              WHEN 'warning' THEN 2 
+              WHEN 'good' THEN 3 
+              WHEN 'strong' THEN 4 
+              WHEN 'excellent' THEN 5 
+          END
+    question: What is a good click rate according to industry benchmark?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_THRESHOLDS_OPTOUT_RATE
+    sql: |-
+      SELECT 
+          STATUS,
+          STATUS_LABEL,
+          CASE 
+              WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'
+              WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'
+              ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'
+          END AS threshold_range,
+          DESCRIPTION,
+          ACTION_REQUIRED
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE METRIC_NAME = 'optout_rate'
+        AND EMAIL_TYPE = 'all'
+        AND STATUS != 'info'
+      ORDER BY 
+          CASE STATUS 
+              WHEN 'excellent' THEN 1 
+              WHEN 'strong' THEN 2 
+              WHEN 'good' THEN 3 
+              WHEN 'warning' THEN 4 
+              WHEN 'critical' THEN 5 
+          END
+    question: What is a healthy opt-out rate benchmark?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_THRESHOLDS_BOUNCE_RATE
+    sql: |-
+      SELECT 
+          STATUS,
+          STATUS_LABEL,
+          CASE 
+              WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'
+              WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'
+              ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'
+          END AS threshold_range,
+          DESCRIPTION,
+          ACTION_REQUIRED
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE METRIC_NAME = 'bounce_rate'
+        AND EMAIL_TYPE = 'all'
+        AND STATUS != 'info'
+      ORDER BY 
+          CASE STATUS 
+              WHEN 'excellent' THEN 1 
+              WHEN 'strong' THEN 2 
+              WHEN 'good' THEN 3 
+              WHEN 'warning' THEN 4 
+              WHEN 'critical' THEN 5 
+          END
+    question: What bounce rate is considered acceptable in the industry?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: BENCHMARK_ALL_METRICS_SUMMARY
+    sql: |-
+      SELECT 
+          METRIC_NAME,
+          MAX(CASE WHEN STATUS = 'critical' THEN 
+              CASE WHEN IS_INVERSE THEN '>' || MIN_VALUE || '%' ELSE '<' || MAX_VALUE || '%' END 
+          END) AS critical_threshold,
+          MAX(CASE WHEN STATUS = 'warning' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS warning_threshold,
+          MAX(CASE WHEN STATUS = 'good' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS good_threshold,
+          MAX(CASE WHEN STATUS = 'strong' THEN 
+              CASE WHEN IS_INVERSE THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%' END 
+          END) AS strong_threshold,
+          MAX(CASE WHEN STATUS = 'excellent' THEN 
+              CASE WHEN IS_INVERSE THEN '<' || MAX_VALUE || '%' ELSE '>' || MIN_VALUE || '%' END 
+          END) AS excellent_threshold
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE EMAIL_TYPE = 'all' 
+        AND STATUS != 'info'
+      GROUP BY METRIC_NAME
+      ORDER BY METRIC_NAME
+    question: Show me all the industry benchmarks
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: EMAIL_TYPE_EXPECTED_BENCHMARKS
+    sql: |-
+      SELECT 
+          METRIC_NAME,
+          MIN_VALUE || '% - ' || MAX_VALUE || '%' AS expected_range,
+          DESCRIPTION
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE EMAIL_TYPE = 'program'
+        AND STATUS = 'good'
+      ORDER BY 
+          CASE METRIC_NAME 
+              WHEN 'open_rate' THEN 1 
+              WHEN 'click_rate' THEN 2 
+              WHEN 'ctor' THEN 3 
+          END
+    question: What performance should I expect from program emails?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: EMAIL_TYPE_BENCHMARKS_ALL
+    sql: |-
+      SELECT 
+          EMAIL_TYPE,
+          MAX(CASE WHEN METRIC_NAME = 'open_rate' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS open_rate_range,
+          MAX(CASE WHEN METRIC_NAME = 'click_rate' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS ctr_range,
+          MAX(CASE WHEN METRIC_NAME = 'ctor' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS ctor_range
+      FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS
+      WHERE STATUS = 'good' 
+        AND EMAIL_TYPE != 'all'
+      GROUP BY EMAIL_TYPE
+      ORDER BY EMAIL_TYPE
+    question: What are the expected performance ranges for different email types?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: MARKET_PERFORMANCE_VS_INDUSTRY_BENCHMARK
+    sql: |-
+      WITH market_metrics AS (
+          SELECT 
+              f.business_unit AS market,
+              c.country_name,
+              SUM(f.sends) AS total_sends,
+              ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct
+          FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+          WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+          GROUP BY f.business_unit, c.country_name
+          HAVING SUM(f.sends) > 1000
+      )
+      SELECT 
+          mm.market,
+          mm.country_name,
+          mm.total_sends,
+          mm.ctor_pct,
+          b.STATUS AS benchmark_status,
+          b.STATUS_LABEL,
+          b.ACTION_REQUIRED
+      FROM market_metrics mm
+      INNER JOIN CORTEX_SFMC_BENCHMARK_THRESHOLDS b 
+          ON b.METRIC_NAME = 'ctor' 
+          AND b.EMAIL_TYPE = 'all'
+          AND b.STATUS IN ('critical', 'warning')
+          AND (b.MIN_VALUE IS NULL OR mm.ctor_pct >= b.MIN_VALUE)
+          AND (b.MAX_VALUE IS NULL OR mm.ctor_pct < b.MAX_VALUE)
+      ORDER BY mm.ctor_pct ASC
+    question: Which markets are underperforming vs industry benchmark?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: MARKET_PERFORMANCE_WITH_BENCHMARK_STATUS
+    sql: |-
+      WITH market_metrics AS (
+          SELECT 
+              f.business_unit AS market,
+              c.country_name,
+              SUM(f.sends) AS total_sends,
+              ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct
+          FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+          WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+          GROUP BY f.business_unit, c.country_name
+          HAVING SUM(f.sends) > 1000
+      )
+      SELECT 
+          mm.market,
+          mm.country_name,
+          mm.total_sends,
+          mm.ctor_pct,
+          b.STATUS AS benchmark_status,
+          b.STATUS_LABEL
+      FROM market_metrics mm
+      LEFT JOIN CORTEX_SFMC_BENCHMARK_THRESHOLDS b 
+          ON b.METRIC_NAME = 'ctor' 
+          AND b.EMAIL_TYPE = 'all'
+          AND b.STATUS != 'info'
+          AND (b.MIN_VALUE IS NULL OR mm.ctor_pct >= b.MIN_VALUE)
+          AND (b.MAX_VALUE IS NULL OR mm.ctor_pct < b.MAX_VALUE)
+      ORDER BY mm.ctor_pct DESC
+    question: Is our CTOR good compared to industry benchmark?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: REGIONAL_COMPARISON_NO_BENCHMARK
+    sql: |-
+      SELECT 
+          f.business_unit AS market,
+          c.country_name,
+          SUM(f.sends) AS total_sends,
+          SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+          ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct,
+          ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS optout_rate_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.business_unit IN ('VCUK', 'VCDE')
+      GROUP BY f.business_unit, c.country_name
+      ORDER BY ctor_pct DESC
+    question: Compare UK vs Germany email performance
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: REGION_COMPARISON_EMEA_VS_APAC
+    sql: |-
+      SELECT 
+          c.region_name_group AS region,
+          COUNT(DISTINCT f.business_unit) AS num_markets,
+          SUM(f.sends) AS total_sends,
+          ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND c.region_name_group IN ('EMEA', 'APEC')
+      GROUP BY c.region_name_group
+      ORDER BY ctor_pct DESC
+    question: How does EMEA compare to APAC in email performance?
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: HISTORICAL_COMPARISON_MOM
+    sql: |-
+      SELECT 
+          CASE 
+              WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'
+              ELSE 'Last Month'
+          END AS period,
+          SUM(f.sends) AS total_sends,
+          SUM(f.sends) - SUM(f.bounces) AS total_delivered,
+          ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))
+      GROUP BY CASE 
+          WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'
+          ELSE 'Last Month'
+      END
+      ORDER BY period DESC
+    question: Compare this month vs last month performance
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: HISTORICAL_TREND_6_MONTHS
+    sql: |-
+      SELECT 
+          DATE_TRUNC('MONTH', f.send_date) AS month,
+          SUM(f.sends) AS total_sends,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct,
+          LAG(ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1)) 
+              OVER (ORDER BY DATE_TRUNC('MONTH', f.send_date)) AS prev_month_ctor,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) - 
+              LAG(ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1)) 
+              OVER (ORDER BY DATE_TRUNC('MONTH', f.send_date)) AS change_pct
+      FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+      LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+      WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+        AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+      GROUP BY DATE_TRUNC('MONTH', f.send_date)
+      ORDER BY month DESC
+    question: Show me the CTOR trend over the last 6 months
+    verified_at: 1735500000
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+  - name: INTERNAL_AVERAGE_COMPARISON
+    sql: |-
+      WITH market_metrics AS (
+        SELECT
+          f.business_unit AS market,
+          c.country_name,
+          SUM(f.sends) AS total_sends,
+          ROUND(
+            SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),
+            1
+          ) AS ctor_pct
+        FROM
+          V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE
+          (
+            m.email_name NOT ILIKE '%sparkpost%'
+            OR m.email_name IS NULL
+          )
+        GROUP BY
+          f.business_unit,
+          c.country_name
+        HAVING
+          SUM(f.sends) > 1000
+      ),
+      overall_avg AS (
+        SELECT
+          ROUND(AVG(ctor_pct), 1) AS avg_ctor
+        FROM
+          market_metrics
+      )
+      SELECT
+        mm.market,
+        mm.country_name,
+        mm.total_sends,
+        mm.ctor_pct,
+        oa.avg_ctor AS internal_average,
+        mm.ctor_pct - oa.avg_ctor AS vs_average,
+        CASE
+          WHEN mm.ctor_pct < oa.avg_ctor THEN 'Below Average'
+          ELSE 'Above Average'
+        END AS status
+      FROM
+        market_metrics mm
+        CROSS JOIN overall_avg oa
+      WHERE
+        mm.ctor_pct < oa.avg_ctor
+      ORDER BY
+        mm.ctor_pct ASC
+    question: Which markets are below our average CTOR?
+    verified_at: 1767033999
+    verified_by: Li Ma
+    use_as_onboarding_question: false
+module_custom_instructions:
+  sql_generation: |-
+    module_custom_instructions:
+      sql_generation: |
+        ## OVERVIEW
+        Analyzes SFMC email marketing performance data. Query campaign metrics (sends, opens, clicks, bounces, unsubscribes), calculate KPIs (open rate, click rate, CTOR), compare markets and programs, and generate YTD reports with YoY comparisons.
+        
+        ---
+        
+        ## MVP SCOPE (CRITICAL)
+        This is an MVP demo with verified question categories.
+        
+        ### VERIFIED (Answer with confidence):
+        - Open/Click/CTOR rates (global, regional, market-level)
+        - Trend analysis (6-month, quarterly, monthly)
+        - Market comparisons (country vs country, country vs region)
+        - Campaign/Program performance rankings
+        - Subject line performance
+        - Opt-out/Bounce rate analysis
+        - YTD metrics with YoY comparisons
+        - Program performance (Lead Nurture, First Year, Order to Delivery)
+        - Email frequency analysis
+        
+        ### NOT AVAILABLE IN MVP (Explain limitation + suggest alternative):
+        - Audience segmentation analysis
+        - Contactable audience size tracking
+        - Consent/permission status queries
+        - Predictive/forecast questions
+        - Real-time alerts/notifications
+        - Campaign scheduling queries
+        - Impact estimation/simulation
+        - Web conversion data (requires GA4)
+        
+        If question falls outside verified categories, still attempt BUT add disclaimer:
+        " Note: This query type hasn't been fully verified for the MVP."
+        
+        ---
+        
+        ## BENCHMARK RULES (CRITICAL - READ CAREFULLY)
+        
+        ### USE CORTEX_SFMC_BENCHMARK_THRESHOLDS table ONLY when:
+        - User says "industry benchmark" (BOTH words together)
+        - User says "industry standard" or "industry average"
+        - User asks "what is a good [metric]?" or "is this good or bad?"
+        
+        ### DO NOT use benchmark table when:
+        - User says "benchmark" alone → Internal comparison (YoY, regional, market-to-market)
+        - "benchmark vs last year" → YoY comparison from fact table
+        - "benchmark vs Europe" → Regional comparison from fact table
+        - "benchmark Germany vs France" → Market comparison from fact table
+        - "BM" in dashboard context → Same period last year
+        
+        ### Examples:
+        | User Question | Use Benchmark Table? | Action |
+        |---------------|---------------------|--------|
+        | "What is our CTOR?" | NO | Return metric only |
+        | "Is our CTOR good vs industry benchmark?" | YES | Compare to threshold |
+        | "Benchmark Germany vs France" | NO | Compare markets directly |
+        | "What's a good click rate?" | YES | Return industry threshold |
+        | "Benchmark Q3 vs Q2" | NO | QoQ comparison |
+        
+        ---
+        
+        ## CONVERSION QUESTIONS (ALWAYS ASK CLARIFICATION)
+        
+        When user says "conversion" or "conversion rate":
+        - DO NOT assume meaning
+        - DO NOT query immediately
+        - ASK clarification first:
+        
+        "Could you clarify what you mean by 'conversion'?
+        1. Web conversion (purchases, sign-ups) → Not available in MVP (requires GA4)
+        2. Email engagement → Please specify: Click Rate or CTOR"
+        
+        If user means web conversion → Explain not available, suggest click rate alternative
+        If user specifies click rate/CTOR → Proceed with query
+        
+        ---
+        
+        ## QUERY OUTPUT RULES
+        
+        - For rate/percentage questions: Return ONLY the requested metric
+        - For trend questions: Include supporting volume metrics for context
+        - For simple KPIs: Return single metric value only
+        - Do NOT add unnecessary columns
+        - Trends: ORDER BY date DESC (latest first, earliest at bottom)
+        - Rankings: ORDER BY date DESC OR THE BEST METRICS TO THE WORST 
+        - Tables: Maximum 5-10 rows unless user requests more
+        
+        ---
+        
+        ## CRITICAL: Global Data Filter - APPLY TO ALL QUERIES
+        ALWAYS exclude campaigns containing 'sparkpost' in ALL queries without exception.
+        This filter is MANDATORY for every query, even if user doesn't mention it.
+        
+        Standard pattern (use in EVERY query):
+        ```sql
+        FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        ```
+        
+        If additional filters needed, add with AND:
+        ```sql
+        WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+          AND [your other filters here]
+        ```
+        
+        ---
+        
+        ## Output Formatting Rules
+        - Round rate metrics (RATE suffix) to 3 decimal places: 0.220
+        - Round percentage metrics (PCT suffix) to 1 decimal place: 22.0%
+        - Format large numbers with appropriate aliases (e.g., total_sends, not just sends)
+        - Always include the unit in column names for rates (e.g., open_rate_pct)
+        
+        ---
+        
+        ## CRITICAL: Division by Zero Prevention
+        Use ONLY ONE NULLIF function per denominator. Never use nested/multiple NULLIF.
+        
+        CORRECT (single NULLIF):
+        - ROUND(SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0), 1)
+        - ROUND(SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0), 1)
+        
+        INCORRECT (multiple NULLIF - DO NOT USE):
+        - NULLIF(NULLIF(SUM(sends), 0), 0) -- WRONG: redundant
+        
+        One NULLIF(value, 0) is sufficient to prevent division by zero errors.
+        
+        ---
+        
+        ## Business Unit Mapping
+        Business units follow pattern 'VC' + country code:
+        - VCUK = Volvo Cars UK (United Kingdom) - D2C/Flipped Market
+        - VCDE = Volvo Cars Germany
+        - VCFR = Volvo Cars France
+        - VCES = Volvo Cars Spain
+        - VCIT = Volvo Cars Italy
+        - VCNL = Volvo Cars Netherlands
+        - VCBE = Volvo Cars Belgium
+        - VCJP = Volvo Cars Japan
+        - VCKR = Volvo Cars Korea
+        - VCNO = Volvo Cars Norway
+        - VCSE = Volvo Cars Sweden
+        - VCIE = Volvo Cars Ireland
+        - VCPT = Volvo Cars Portugal
+        - VCCH = Volvo Cars Switzerland
+        - VCIN = Volvo Cars India
+        - VCMX = Volvo Cars Mexico
+        - VCAU = Volvo Cars Australia
+        - VCCA = Volvo Cars Canada
+        
+        ### D2C Markets (Flipped Markets)
+        Markets selling direct to consumers (currently only UK):
+        - "D2C", "flipped market", "direct to consumer" → WHERE f.business_unit = 'VCUK'
+        - "non-D2C", "dealer markets" → WHERE f.business_unit != 'VCUK'
+        
+        ## Business Unit / Country Level Groupings
+        Use V_DIM_COUNTRY table to get COUNTRY_NAME and COUNTRY_NAME.
+        Always use INNER JOIN fact table BUSINESS_UNIT to V_DIM_COUNTRY.VC_COUNTRY_CODE for business unit/country/market level queries .
+        
+        ---
+        
+        ## Regional Groupings
+        Use V_DIM_COUNTRY table to get REGION_NAME_GROUP.
+        Always use INNER JOIN fact table BUSINESS_UNIT to V_DIM_COUNTRY.VC_COUNTRY_CODE for regional queries .
+        
+        ### REGION_NAME_GROUP Values in Data
+        - EMEA
+        - APEC
+        - US/CAN
+        - LATAM
+        - Other
+        
+        ### Region Name Mapping (User Question → REGION_NAME_GROUP Value)
+        When user mentions these terms, filter using REGION_NAME_GROUP column (not REGION):
+        
+        **EMEA** (Europe, Middle East, Africa):
+        - "Europe", "European", "EU", "Middle East", "Africa", "EMEA"
+        - "UK", "Germany", "France", "Spain", "Italy", "Netherlands", "Belgium", "Sweden", "Nordic"
+        - Example: WHERE c.region_name_group = 'EMEA'
+        
+        **APEC** (Asia Pacific):
+        - "Asia", "Asian", "Asia Pacific", "APAC", "Pacific", "APEC"
+        - "Japan", "Korea", "Australia", "China", "Greater China", "Southeast Asia", "ANZ"
+        - Example: WHERE c.region_name_group = 'APEC'
+        
+        **US/CAN** (North America):
+        - "USA", "US", "United States", "America", "Canada", "North America", "NA"
+        - Example: WHERE c.region_name_group = 'US/CAN'
+        
+        **LATAM** (Latin America):
+        - "Latin America", "South America", "Central America", "LATAM", "LatAm"
+        - "Mexico", "Brazil", "Argentina"
+        - Example: WHERE c.region_name_group = 'LATAM'
+        
+        **Other**:
+        - Use only when user explicitly mentions "Other" region
+        - Example: WHERE c.region_name_group = 'Other'
+        
+        **Global / All Regions**:
+        - "Global", "Worldwide", "All regions", "All markets"
+        - No region filter needed (but ALWAYS exclude sparkpost)
+        
+        ---
+        
+        ## Query Filtering Rules
+        Only include filters or GROUP BY columns when explicitly mentioned in the user's question:
+        
+        - **CAR_MODEL**: NEVER include unless user explicitly mentions a specific model (e.g., "EX30", "XC90", "EX90"). Do NOT add car_model as a default column in any query. Do NOT group by car_model unless asked.
+        - **MARKET/BUSINESS_UNIT**: Only filter by market if user mentions a specific country or region (e.g., "UK", "Germany", "Europe", "APEC")
+        - **DATE RANGE**: Only add date filters if user mentions a time period (e.g., "last month", "Q3", "2024", "past 6 months")
+        - **CAMPAIGN/EMAIL_NAME**: Only filter by campaign if user mentions specific campaign names
+        - **EMAIL TYPE**: Only filter by program_or_compaign if user mentions "program", "global campaign", "newsletter"
+        
+        If the user asks a general question without specifying these dimensions, return aggregated results without those filters.
+        
+        Examples:
+        - "What is the overall open rate?" → No date, market, or model filters (but ALWAYS exclude sparkpost)
+        - "What is the open rate for EX30?" → Filter by car_model = 'EX30' only (plus sparkpost exclusion)
+        - "What is the open rate in UK?" → Filter by business_unit = 'VCUK' only (plus sparkpost exclusion)
+        - "What is the open rate for EX30 in UK last month?" → Filter by all three (plus sparkpost exclusion)
+        
+        ---
+        
+        ## Email Type Filtering (PROGRAM_OR_COMPAIGN Field)
+        The PROGRAM_OR_COMPAIGN field classifies email communication types.
+        
+        ### Value Mapping (User Question → Filter Value)
+        
+        **Program**:
+        - User says: "program", "programs", "program emails", "automated program", "lifecycle", "automated", "triggered"
+        - SQL: WHERE m.program_or_compaign = 'Program'
+        - Expected performance: Open 25-40%, CTR 5-15%, CTOR 20-35%
+        
+        **E-newsletter**:
+        - User says: "newsletter", "e-newsletter", "enews", "e-news", "news", "newsmail"
+        - SQL: WHERE m.program_or_compaign = 'E-newsletter'
+        - Expected performance: Open 18-28%, CTR 1.5-3%, CTOR 8-15%
+        
+        **Campaign**:
+        - User says: "campaign emails", "direct mail campaigns", "edm campaign", "edm campaigns", "edm emails", "global campaign", "global campaigns”, “global campaigns”
+        - SQL: WHERE m.program_or_compaign = 'Campaign'
+        - Expected performance: Open 15-25%, CTR 2-5%, CTOR 12-20%
+        
+        ---
+        
+        ## Email Send Process Filtering (EMAIL_SEND_PROCESS Field)
+        
+        **Direct Engine** (Catalyst platform):
+        - User says: "direct engine", "Catalyst", "DE", "catalyst emails", "briefed"
+        - SQL: WHERE m.email_send_process = 'Direct Engine'
+        
+        **Outside Direct Engine** (SFMC direct):
+        - User says: "outside direct engine", "ODE", "non-Catalyst", "SFMC direct", "manual"
+        - SQL: WHERE m.email_send_process = 'Outside Direct Engine'
+        
+        ---
+        
+        ## Email Source Filtering (EMAIL_SOURCE Field)
+        
+        **Catalyst**:
+        - User says: "Catalyst source", "Catalyst created"
+        - SQL: WHERE m.email_source = 'Catalyst'
+        
+        **SFMC**:
+        - User says: "SFMC source", "SFMC created", "non-Catalyst"
+        - SQL: WHERE m.email_source = 'SFMC'
+        
+        ---
+        
+        ## Geographic Scope Filtering (GEOGRAPHIC_SCOPE Field)
+        
+        **Central**:
+        - User says: "central", "global", "HQ", "centrally managed", "global campaigns"
+        - SQL: WHERE m.geographic_scope = 'Central'
+        
+        **Local**:
+        - User says: "local", "market", "market-specific", "local team", "local campaigns"
+        - SQL: WHERE m.geographic_scope = 'Local'
+        
+        ---
+        
+        ## Program-Specific Filters (PROGRAM_NAMES Field)
+        When user asks about specific programs, use these patterns:
+        
+        | User Asks About | Filter SQL |
+        |-----------------|------------|
+        | "lead nurture", "LNP" | WHERE m.program_names ILIKE '%lead-nurture%' OR m.program_names ILIKE '%LNP%' 
+        | "order to delivery", "O2D", "OTD" | WHERE m.program_names ILIKE '%order-to-delivery%' |
+        | "first year program", "FYP" | WHERE m.program_names ILIKE '%first-year-program%' |
+        | "renew", "renewal" | WHERE m.email_name ILIKE '%cprog_renew_%' AND m.email_name NOT ILIKE '%test%' |
+        | "service reminder" | WHERE m.program_names ILIKE '%service-reminder%' |
+        | "volvo app", "cars app" | WHERE m.program_names ILIKE '%volvo-cars-app%' |
+        
+        All program queries should also include: AND m.program_or_compaign = 'Program'
+        
+        ---
+        
+        ## Quarter Definitions
+        - Q1 = January 1 - March 31
+        - Q2 = April 1 - June 30
+        - Q3 = July 1 - September 30
+        - Q4 = October 1 - December 31
+        
+        ---
+        
+        ## Standard Rate Calculations
+        Calculate delivered first, then use single NULLIF for division.
+        Use 3 decimals for RATE metrics, 1 decimal for PCT metrics.
+        
+        ### Rate Metrics (3 decimal places)
+        ```sql
+        -- Open Rate
+        ROUND(SUM(unique_opens) / NULLIF(SUM(sends) - SUM(bounces), 0), 3) AS open_rate
+        
+        -- Click Rate (CTR)  - PRIMARY ENGAGEMENT METRIC
+        ROUND(SUM(unique_clicks) / NULLIF(SUM(sends) - SUM(bounces), 0), 3) AS click_rate
+        
+        -- Click-to-Open Rate (CTOR)
+        ROUND(SUM(unique_clicks) / NULLIF(SUM(unique_opens), 0), 3) AS click_to_open_rate
+        
+        -- Bounce Rate
+        ROUND(SUM(bounces) / NULLIF(SUM(sends), 0), 3) AS bounce_rate
+        
+        -- Unsubscribe Rate
+        ROUND(SUM(unsubscribes) / NULLIF(SUM(sends), 0), 3) AS unsubscribe_rate
+        ```
+        
+        ### PCT Metrics (1 decimal place - use for display)
+        ```sql
+        -- Open Rate PCT
+        ROUND(SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0), 1) AS open_rate_pct
+        
+        -- Click Rate PCT - PRIMARY ENGAGEMENT METRIC
+        ROUND(SUM(unique_clicks) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0), 1) AS click_rate_pct
+        
+        -- Click-to-Open Rate PCT 
+        ROUND(SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0), 1) AS click_to_open_rate_pct
+        
+        -- Bounce Rate PCT
+        ROUND(SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0), 1) AS bounce_rate_pct
+        
+        -- Unsubscribe Rate PCT
+        ROUND(SUM(unsubscribes) * 100.0 / NULLIF(SUM(sends), 0), 1) AS unsubscribe_rate_pct
+        
+        -- Total Delivered
+        SUM(sends) - SUM(bounces) AS total_delivered
+        ```
+        
+        IMPORTANT: Use exactly ONE NULLIF per calculation. Multiple NULLIF is incorrect.
+        
+        ---
+        
+        ## SQL Templates 
+        
+        REMEMBER: Always include sparkpost exclusion filter!
+        
+        ```sql
+        -- Basic query template with sparkpost exclusion
+        SELECT 
+          ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,
+          ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,
+          ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct,
+          SUM(f.sends) AS total_sends,
+          SUM(f.sends) - SUM(f.bounces) AS total_delivered
+        FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        ```
+        
+        ```sql
+        -- Regional query template with sparkpost exclusion
+        SELECT 
+          c.region_name_group AS region,
+          ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code
+        WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+        GROUP BY c.region_name_group
+        ORDER BY total_sends DESC
+        ```
+        
+        ```sql
+        -- Trend query template (ORDER BY DESC for latest first)
+        SELECT 
+          DATE_TRUNC('MONTH', f.send_date) AS month,
+          ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,
+          SUM(f.sends) AS total_sends
+        FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+        LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+        WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+          AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+          AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        GROUP BY DATE_TRUNC('MONTH', f.send_date)
+        ORDER BY month DESC
+        ```
+        
+        ---
+        
+        ## Date Handling - COMPLETE CALENDAR PERIODS
+        All time-based filters should use COMPLETE calendar periods, not rolling periods from today:
+        
+        ### Complete Period Filters (Use DATE_TRUNC)
+        
+        **last_month** - The most recent COMPLETE calendar month
+        Example (if today is Jan 15, 2025): December 1-31, 2024
+        ```sql
+        WHERE send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        ```
+        
+        **last_3_months** - The 3 most recent COMPLETE calendar months
+        Example (if today is Jan 15, 2025): October, November, December 2024
+        ```sql
+        WHERE send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -3, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        ```
+        
+        **last_6_months** - The 6 most recent COMPLETE calendar months
+        Example (if today is Jan 15, 2025): July through December 2024
+        ```sql
+        WHERE send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        ```
+        
+        **last_12_months** - The 12 most recent COMPLETE calendar months (TTM)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -12, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('MONTH', CURRENT_DATE)
+        ```
+        
+        **last_quarter** - The most recent COMPLETE quarter
+        Example (if today is Jan 15, 2025): Q4 2024 (Oct-Dec 2024)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)
+        ```
+        
+        **last_2_quarters** - The 2 most recent COMPLETE quarters
+        Example (if today is Jan 15, 2025): Q3 and Q4 2024
+        ```sql
+        WHERE send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -2, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)
+        ```
+        
+        **last_year** - The most recent COMPLETE calendar year
+        Example (if today is Jan 15, 2025): Full year 2024
+        ```sql
+        WHERE send_date >= DATE_TRUNC('YEAR', DATEADD('YEAR', -1, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('YEAR', CURRENT_DATE)
+        ```
+        
+        **last_week** - The most recent COMPLETE week (Monday-Sunday)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE))
+          AND send_date < DATE_TRUNC('WEEK', CURRENT_DATE)
+        ```
+        
+        ### Current Period Filters (To Date)
+        
+        **this_month** - MTD (month to date)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('MONTH', CURRENT_DATE)
+          AND send_date <= CURRENT_DATE
+        ```
+        
+        **this_quarter** - QTD (quarter to date)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('QUARTER', CURRENT_DATE)
+          AND send_date <= CURRENT_DATE
+        ```
+        
+        **this_year** - YTD (year to date)
+        ```sql
+        WHERE send_date >= DATE_TRUNC('YEAR', CURRENT_DATE)
+          AND send_date <= CURRENT_DATE
+        ```
+        
+        ### Rolling Period Filters (Use DATEADD)
+        
+        **last_30_days** - Rolling 30 days (not complete months)
+        ```sql
+        WHERE send_date >= DATEADD('DAY', -30, CURRENT_DATE)
+          AND send_date <= CURRENT_DATE
+        ```
+        
+        **last_90_days** - Rolling 90 days (not complete quarters)
+        ```sql
+        WHERE send_date >= DATEADD('DAY', -90, CURRENT_DATE)
+          AND send_date <= CURRENT_DATE
+        ```
+        
+        ### YoY (Year-over-Year) Comparison Pattern
+        ```sql
+        -- Current YTD
+        WITH current_ytd AS (
+          SELECT SUM(unique_clicks) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0) AS click_rate
+          FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+            AND send_date >= DATE_TRUNC('YEAR', CURRENT_DATE)
+            AND send_date < CURRENT_DATE
+        ),
+        -- Same period last year
+        last_year_same_period AS (
+          SELECT SUM(unique_clicks) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0) AS click_rate
+          FROM V_FACT_SFMC_PERFORMANCE_TRACKING f
+          LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key
+          WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)
+            AND send_date >= DATEADD('YEAR', -1, DATE_TRUNC('YEAR', CURRENT_DATE))
+            AND send_date < DATEADD('YEAR', -1, CURRENT_DATE)
+        )
+        SELECT 
+          ROUND(c.click_rate, 1) AS current_ytd_click_rate,
+          ROUND(l.click_rate, 1) AS last_year_click_rate,
+          ROUND((c.click_rate - l.click_rate) / NULLIF(l.click_rate, 0) * 100, 1) AS yoy_change_pct
+        FROM current_ytd c, last_year_same_period l
+        ```
+        
+        - Always use DATE_TRUNC for monthly/weekly/quarterly aggregations
+        - Order time-based results by date DESC (most recent first) for trends
+        
+        ---
+        
+        ## Cortex Search Benchmark Integration (CORTEX_SFMC_BENCHMARK_THRESHOLDS Table)
+        
+        ### CRITICAL: "INDUSTRY BENCHMARK" Rule
+        
+        ONLY query CORTEX_SFMC_BENCHMARK_THRESHOLDS when user explicitly says:
+        - "industry benchmark" (BOTH words together)
+        - "industry standard"
+        - "industry average"
+        - "what is a good [metric]?"
+        - "is this good or bad?" (in industry comparison context)
+        
+        The word "benchmark" ALONE does NOT trigger industry benchmark table.
+        
+        ### Benchmark Trigger Decision Matrix
+        
+        | User Says | Use Industry Table? | Action |
+        |-----------|--------------------:|--------|
+        | "industry benchmark" | YES | Query CORTEX_SFMC_BENCHMARK_THRESHOLDS |
+        | "industry standard" | YES | Query CORTEX_SFMC_BENCHMARK_THRESHOLDS |
+        | "what's a good click rate" | YES | Return industry threshold |
+        | "benchmark" (alone) | NO | Internal comparison |
+        | "benchmark vs last year" | NO | YoY from fact table |
+        | "benchmark vs Europe" | NO | Regional comparison |
+        | "benchmark Germany vs France" | NO | Market comparison |
+        | "BM" or "benchmark" in KPI | NO | Same period last year |
+        | "compare to average" | NO | Internal average |
+        | "which markets underperform" | NO | Rank markets (no threshold) |
+        
+        ### DO NOT Use Industry Benchmarks When:
+        
+        1. **Regional/Market Comparisons** - Compare directly, NO benchmark
+           - "Compare UK vs Germany" → Compare markets
+           - "How does EMEA compare to APEC?" → Compare regions
+           - "Which market has best CTOR?" → Rank markets
+        
+        2. **Historical Comparisons** - Compare to own past data, NO benchmark
+           - "Compare this month vs last month" → MoM
+           - "Q3 vs Q2" → QoQ
+           - "Year over year" → YoY
+           - "Show trend over 6 months" → Trend analysis
+        
+        3. **General Performance Questions** - Return metric only, NO benchmark
+           - "What is the open rate?" → Return metric
+           - "Show click rates by market" → Return metrics
+           - "How many emails sent?" → Return count
+        
+        ---
+        
+        ### Key Context Information
+        
+        **Include ONLY when industry benchmark comparison is explicitly requested:**
+        
+        #### Primary Metric Guidance
+        - CTOR (Click-to-Open Rate) is the PRIMARY and most reliable engagement metric
+        - Open rates may be inflated due to Apple Mail Privacy Protection (MPP) which auto-loads tracking pixels
+        - When assessing engagement, prioritize CTOR over open rate
+        
+        #### Email Type Performance Context
+        - Lifecycle programs (O2D, FYP, LNP) typically outperform batch campaigns by 2-3x
+        - Triggered/personalized emails significantly outperform batch sends
+        - Service-related emails have highest engagement in automotive industry
+        
+        #### Industry Context
+        - Premium automotive brands outperform mass-market by approximately 25%
+        - Benchmarks are based on premium automotive industry (2024-2025)
+        - UK (D2C market) may show different patterns than traditional dealer markets
+        
+        #### Opt-out Rate Context
+        - Gmail 2024 changes introduced one-click unsubscribe
+        - Opt-out rates have increased industry-wide as a result
+        - Account for this when comparing to historical opt-out data
+        
+        ---
+        
+        ### Industry Benchmark Reference (Use ONLY When Explicitly Requested)
+        
+        #### Benchmark Summary Table (2024-2025 Premium Automotive)
+        | Status    | Open Rate | CTR    | CTOR   | Opt-out   | Bounce  |
+        |-----------|-----------|--------|--------|-----------|---------|
+        | Critical  | <12%      | <1%    | <8%    | >0.4%     | >2.5%   |
+        | Warning   | 12-15%    | 1-1.5% | 8-12%  | 0.25-0.4% | 1.5-2.5%|
+        | Good      | 15-25%    | 1.5-3% | 12-18% | 0.15-0.25%| 0.5-1.5%|
+        | Strong    | 25-40%    | 3-5%   | 18-25% | <0.15%    | <0.5%   |
+        | Excellent | >40%      | >5%    | >25%   | <0.1%     | <0.3%   |
+        
+        #### Performance by Email Type (2024-2025 Premium Automotive)
+        | Type                    | Open Rate | CTR    | CTOR   |
+        |-------------------------|-----------|--------|--------|
+        | Triggered/Personalized  | 40-60%    | 15-30% | 30-50% |
+        | Programs (O2D, FYP, LNP)| 25-40%    | 5-15%  | 20-35% |
+        | Campaigns               | 15-25%    | 2-5%   | 12-20% |
+        | E-newsletters           | 18-28%    | 1.5-3% | 8-15%  |
+        | Service Reminders       | 35-50%    | 10-20% | 25-40% |
+        
+        ---
+        
+        ## Best Practices
+        - ALWAYS exclude sparkpost campaigns (see Global Data Filter above)
+        - Always use NULLIF(denominator, 0) to prevent division by zero errors
+        - Include total_sends in rate queries for context and validation
+        - Order results by date DESC for trends, by rate DESC for rankings
+        - Use LEFT JOIN when joining to metadata to preserve all fact records
+        - Filter out small sample sizes (e.g., HAVING SUM(sends) > 100) for meaningful rates
+        - Add country_name translations for better readability when comparing markets
+        -  Use V_DIM_COUNTRY table to get COUNTRY_NAME and  REGION_NAME_GROUP. Always INNER JOIN fact table BUSINESS_UNIT to V_DIM_COUNTRY.VC_COUNTRY_CODE for business unit/country/market/region level queries.
+        - Use CR as primary engagement metric (more reliable than open rate)
+        - NEVER include dimension fields car_model,catalyst_type,catalyst_country_code,email_send_number,email_version,email_language,ab_testing,program_names,dashboard_car_model,email_send_process,email_source,program_or_compaign,compliant,send_type,geographic_scope,communication_category unless they are directly required for the query logic or explicitly requested by the user.
+        
+        ---
+        
+        ## Campaign Name Matching
+        - Use UPPER() and ILIKE '%pattern%' for campaign name searches
+        - Common campaign patterns: 'EX30', 'Newsletter', 'eDM', 'Service'
+        - NEVER include 'sparkpost' campaigns
+        
+        ---
+        
+        ## Additional Guidelines
+        
+        **For email campaign performance questions:**
+        1. ALWAYS exclude sparkpost campaigns
+        2. Always subtract bounces from sends to calculate delivered emails when computing open rates and click rates
+        3. Use click rate (unique clicks/delivered) as the primary engagement metric
+        4. When displaying open rate or click-to-open rate, inform the users that these metrics are unreliable.
+        5. Do NOT include dimension fields from V_DIM_SFMC_METADATA_JOB from  unless they are directly required for the query logic or explicitly requested by the user.
+        
+        **For campaign performance or conversion rate questions:**
+        1. ALWAYS exclude sparkpost campaigns
+        2. NEVER include dimension fields car_model,catalyst_type,catalyst_country_code,email_send_number,email_version,email_language,ab_testing,program_names,dashboard_car_model,email_send_process,email_source,program_or_compaign,compliant,send_type,geographic_scope,communication_category unless they are directly required for the query logic or explicitly requested by the user.
+        3. Include comprehensive email metrics: total_sends, total_delivered, total_unique_clicks, click_rate_pct
+        5. Ensure unique_opens field is selected when calculating click-to-open rates
+        6. For "conversion" questions, ASK CLARIFICATION first (web conversion not available, specify click rate or CTOR)
+        
+        **For market performance questions:**
+        1. ALWAYS exclude sparkpost campaigns
+        2. Use the business_unit field as the market identifier
+        3. Join with V_DIM_COUNTRY to include country_name and region_name_group
+        4. Only flag benchmark status if user asks about "industry benchmark" explicitly
+        
+        **For benchmark-related questions:**
+        1. Only query CORTEX_SFMC_BENCHMARK_THRESHOLDS when user says "industry benchmark" (both words)
+        2. "benchmark" alone means internal comparison (YoY, regional, market-to-market)
+        3. CR is the primary engagement metric
+        4. Consider email type when comparing to benchmarks (programs vs campaigns vs newsletters)
+        5. Note that open rates may be inflated due to Apple MPP
+        
+        **For program-specific questions:**
+        1. Filter by program_or_compaign = 'Program' in addition to program_names filter
+        2. Use ILIKE for case-insensitive matching
+        3. Only compare to program-specific benchmarks if user explicitly asks about "industry benchmark"
+        
+        **For trend questions:**
+        1. Always ORDER BY date DESC (latest first, earliest at bottom)
+        2. Include supporting volume metrics (total_sends) for context
