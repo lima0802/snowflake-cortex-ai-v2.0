@@ -1,0 +1,20 @@
+# Core Framework
+streamlit==1.30.0
+
+# Snowflake Integration
+snowflake-snowpark-python==1.11.1
+python-dotenv==1.0.0
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.3
+
+# HTTP Client
+requests==2.31.0
+
+# Visualization
+plotly==5.18.0
+altair==5.2.0
+
+# UI Enhancements
+streamlit-extras==0.3.6

@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  orchestrator:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: dia-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+    env_file:
+      - .env
+    volumes:
+      - ./orchestrator:/app
+      - ./config:/app/config
+      - ./tests:/tests
+    restart: unless-stopped
+    networks:
+      - dia-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  web-app:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: dia-web-app
+    ports:
+      - "8501:8501"
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+    env_file:
+      - .env
+    volumes:
+      - ./web-app:/app
+    restart: unless-stopped
+    networks:
+      - dia-network
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  dia-network:
+    driver: bridge
+
+volumes:
+  orchestrator-data:
+  web-app-data:
