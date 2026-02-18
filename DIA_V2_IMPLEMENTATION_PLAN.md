@@ -179,12 +179,11 @@ snowflake-cortex-ai-v2.0/
 │── ──────────────────────────────────────────────────────
 │
 ├── scripts/                              # Deployment & setup scripts
-│   ├── create_agent.sql                  # Cortex Agent creation SQL
-│   ├── deploy_agent.py                   # Agent deployment automation
-│   ├── deploy_semantic_model.py          # Semantic model deployment
-│   ├── inspect_agent.py                  # Agent inspection utility
-│   ├── migrate_semantic_objects.py       # Semantic object migration
-│   └── setup_benchmarks.sql              # Benchmark data loading
+│   ├── setup_data_layer.py               # Data layer setup (views, benchmarks, ML, semantic model)
+│   ├── deploy_semantic_model.py          # Re-deploy semantic model YAML to stage
+│   ├── deploy_agent.py                   # Cortex Agent deployment automation
+│   ├── create_agent.sql                  # Cortex Agent creation SQL (used by deploy_agent.py)
+│   └── inspect_agent.py                  # Agent inspection utility
 │
 └── docs/                                 # Documentation
     ├── user_guide.md                     # End-user query guide
@@ -246,30 +245,44 @@ This guide provides a detailed, sequential approach to implementing DIA v2 from 
 #### Step 1.2: Data Layer Setup
 **Goal:** Create semantic views, benchmarks, and ML model placeholders in Snowflake
 
-1. **Create semantic views:**
-   ```bash
-   snowsql -f data-layer/views/setup_semantic_views.sql
-   ```
-   - Verify: `SELECT * FROM <schema>.VW_SFMC_EMAILS LIMIT 10;`
+All steps are automated via `scripts/setup_data_layer.py` (no SnowSQL required).
+It uses `snowflake.connector` to execute SQL files and `snowflake.snowpark` for file uploads.
 
-2. **Load benchmark data:**
+1. **Run all steps at once (recommended):**
    ```bash
-   snowsql -f data-layer/benchmarks/setup_benchmarks.sql
+   python scripts/setup_data_layer.py
    ```
-   - Verify: `SELECT * FROM <schema>.BENCHMARK_THRESHOLDS;`
 
-3. **Create ML model placeholders:**
-   ```bash
-   snowsql -f data-layer/ml-models/setup_ml_models.sql
-   ```
-   - Verify: `SHOW MODELS IN SCHEMA <schema>;`
+   Or run each step individually:
 
-4. **Upload semantic model to Snowflake:**
    ```bash
-   python scripts/deploy_semantic_model.py \
-     --file config/semantic.yaml \
-     --stage @<schema>.SEMANTIC_MODELS
+   # Create semantic views (data-layer/views/setup_semantic_views.sql)
+   python scripts/setup_data_layer.py --step views
+
+   # Load benchmark thresholds (data-layer/benchmarks/setup_benchmarks.sql)
+   python scripts/setup_data_layer.py --step benchmarks
+
+   # Create ML model placeholders (data-layer/ml-models/setup_ml_models.sql)
+   python scripts/setup_data_layer.py --step ml-models
+
+   # Upload semantic model to @SEMANTIC_MODELS stage
+   python scripts/setup_data_layer.py --step semantic-model
    ```
+
+2. **Verify in Snowsight:**
+   ```sql
+   SELECT * FROM PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.VW_SFMC_EMAIL_PERFORMANCE LIMIT 10;
+   SELECT * FROM PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.BENCHMARK_THRESHOLDS;
+   SELECT * FROM PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.ML_MODEL_REGISTRY;
+   LIST @PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.SEMANTIC_MODELS;
+   ```
+
+3. **Upload semantic model only** (if re-deploying after edits to `data-layer/semantic-models/semantic.yaml`):
+   ```bash
+   python scripts/deploy_semantic_model.py
+   ```
+   - Source file: `data-layer/semantic-models/semantic.yaml`
+   - Target stage: `@PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.SEMANTIC_MODELS`
 
 **Deliverable:** ✅ Data layer configured with views, benchmarks, and semantic model
 
@@ -862,7 +875,7 @@ python evaluation/test_suite.py --tier all
 
 **Deploy semantic model:**
 ```bash
-python scripts/deploy_semantic_model.py --file config/semantic.yaml
+python scripts/deploy_semantic_model.py
 ```
 
 **Inspect deployed agent:**

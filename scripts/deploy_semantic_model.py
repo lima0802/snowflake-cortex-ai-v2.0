@@ -32,7 +32,7 @@ def deploy():
         session.sql(f"ALTER STAGE {stage_name} REFRESH").collect()
         
         # 2. Upload File
-        local_file = "config/semantic.yaml"
+        local_file = "data-layer/semantic-models/semantic.yaml"
         print(f"Uploading '{local_file}' to @{stage_name}...")
         put_result = session.file.put(local_file, f"@{stage_name}", auto_compress=False, overwrite=True)
         print(f"   Upload status: {put_result[0].status}")

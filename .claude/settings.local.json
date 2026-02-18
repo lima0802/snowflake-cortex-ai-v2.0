@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(docker:*)",
-      "Bash(docker-compose:*)"
+      "Bash(docker-compose:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(powershell -Command:*)",
+      "Bash(python scripts/setup_data_layer.py:*)",
+      "Bash(python:*)"
     ]
   }
 }
