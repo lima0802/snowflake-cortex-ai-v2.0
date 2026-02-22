@@ -10,7 +10,7 @@ cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\sno
 **Then run these tests:**
 ```powershell
 # Test Snowflake connection (✅ Working!)
-docker exec dia-orchestrator python test_connection.py
+docker exec dia-orchestrator python /tests/test_connection.py
 
 # Test logging (⏳ Needs implementation)
 docker exec dia-orchestrator python test_logging.py
@@ -46,7 +46,7 @@ docker exec dia-orchestrator python -c "print('Hello from container')"
 docker exec dia-orchestrator python test_logging.py
 
 # Run Snowflake connection test
-docker exec dia-orchestrator python test_connection.py
+docker exec dia-orchestrator python /tests/test_connection.py
 
 # Check Python packages
 docker exec dia-orchestrator pip list
@@ -63,7 +63,7 @@ docker exec -it dia-orchestrator /bin/bash
 # When inside container (root@...:/app#):
 ls -la
 python test_logging.py
-python test_connection.py
+python /tests/test_connection.py
 exit  # to leave container
 ```
 
@@ -163,7 +163,7 @@ cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\sno
 
 2. **Snowflake Connection:**
    ```powershell
-   docker exec dia-orchestrator python test_connection.py
+   docker exec dia-orchestrator python /tests/test_connection.py
    ```
    Expected: "CONNECTION SUCCESSFUL!" ✅
 
@@ -235,7 +235,7 @@ docker-compose ps
 curl http://localhost:8000/api/v1/health
 
 # Test Snowflake connection (✅ Working!)
-docker exec dia-orchestrator python test_connection.py
+docker exec dia-orchestrator python /tests/test_connection.py
 
 # Open API docs in browser
 start http://localhost:8000/docs
@@ -297,17 +297,18 @@ docker exec dia-orchestrator python test_logging.py
 
 ### Issue 3: File not found in container
 
-**Problem:** Test file is in `tests/` directory, which isn't mounted in container.
+**Problem:** Test file path is incorrect or not using mounted volume path.
 
-**Solution:** Copy file to container first
+**Solution:** Use the correct mounted path
 ```powershell
-# Copy file to container
-docker cp tests/test_connection.py dia-orchestrator:/app/
-
-# Then run it
+# ❌ Wrong (file not in /app directory)
 docker exec dia-orchestrator python test_connection.py
+
+# ✅ Correct (use mounted /tests directory)
+docker exec dia-orchestrator python /tests/test_connection.py
 ```
-Note: I already copied `test_connection.py` for you ✅
+
+**Note:** The `./tests` directory is mounted at `/tests` in the container (see docker-compose.yml line 23)
 
 ### Issue 4: Lost in container shell
 
@@ -404,7 +405,7 @@ docker-compose up --build orchestrator
 
 | Test | Command | Status |
 |------|---------|--------|
-| Snowflake Connection | `docker exec dia-orchestrator python test_connection.py` | ✅ Working |
+| Snowflake Connection | `docker exec dia-orchestrator python /tests/test_connection.py` | ✅ Working |
 | API Health | `curl http://localhost:8000/api/v1/health` | ✅ Working |
 | API Docs | `start http://localhost:8000/docs` | ✅ Working |
 | Web App | `start http://localhost:8501` | ✅ Working |
