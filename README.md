@@ -38,6 +38,104 @@ Snowflake Cortex AI-powered analytics orchestrator for SFMC email performance an
    - **API Documentation**: http://localhost:8000/docs
    - **Web Application**: http://localhost:8501
 
+---
+
+## 🔄 Daily Development Workflow
+
+### Starting Work (Every Time You Open VSCode)
+
+1. **Ensure Docker Desktop is running:**
+   ```powershell
+   # Check Docker status
+   docker info
+   # If error: Launch Docker Desktop from Start menu
+   ```
+
+2. **Start services:**
+   ```powershell
+   # Navigate to project root (if not already there)
+   cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\snowflake-cortex-ai-v2.0"
+   
+   # Start all services in background
+   docker-compose up -d
+   ```
+
+3. **Verify services are running:**
+   ```powershell
+   # Check status
+   docker-compose ps
+   # Both containers should show "Up (healthy)"
+   
+   # Quick health check
+   curl http://localhost:8000/api/v1/health
+   ```
+
+4. **Start coding!**
+   - Edit files in `orchestrator/` or `web-app/`
+   - Changes auto-reload (no restart needed)
+   - View real-time logs: `docker-compose logs -f orchestrator`
+
+### Accessing Your Services
+
+- **🔧 API Docs:** http://localhost:8000/docs  
+  Interactive testing tool - test endpoints directly in browser!
+  
+- **🌐 Web App:** http://localhost:8501  
+  User interface for queries
+  
+- **📊 Health Check:** http://localhost:8000/api/v1/health  
+  Verify services are running
+
+### Common Commands
+
+```powershell
+# View logs (real-time)
+docker-compose logs -f
+
+# Restart a service (e.g., after requirements.txt change)
+docker-compose restart orchestrator
+
+# Rebuild after dependency changes
+docker-compose up --build -d
+
+# Check service status
+docker-compose ps
+```
+
+### Finishing Work
+
+**Option 1: Leave running (recommended for active development)**
+```powershell
+# Just close VSCode - services keep running in background
+# Fast startup next time!
+```
+
+**Option 2: Stop services (to free up resources)**
+```powershell
+# Stop services (keeps containers for fast restart)
+docker-compose stop
+
+# Or completely remove (slower next start)
+docker-compose down
+```
+
+### Troubleshooting
+
+```powershell
+# Port already in use?
+netstat -ano | findstr :8000
+Stop-Process -Id <PID> -Force
+
+# Services won't start? Full reset:
+docker-compose down
+docker-compose up --build -d
+
+# View detailed logs
+docker-compose logs orchestrator
+```
+
+---
+
 ## 📚 Documentation
 
 ### Implementation Guides
