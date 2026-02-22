@@ -12,8 +12,7 @@ Guides are organized by implementation phase and numbered for easy navigation.
 
 Start here if you're setting up the project for the first time:
 
-- **[00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)** - Complete Docker setup guide (from zero installation to running services)
-- **[00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)** - Windows-specific Docker commands
+- **[00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)** - Complete Docker setup guide (from zero installation to running services, includes Windows-specific commands)
 - **[00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)** - How to test your implementation
 
 ---
@@ -40,20 +39,20 @@ Start here if you're setting up the project for the first time:
 ### Phase 2: Core Services Implementation (Week 2)
 
 #### Step 2.1: Implement Cortex Service Wrappers
-📄 **Guide:** `02_STEP_2.1_CORTEX_SERVICES.md` ⏳ (Coming soon)
+📄 **Guide:** [02_STEP_2.1_CORTEX_SERVICES.md](02_STEP_2.1_CORTEX_SERVICES.md) 📝 Template Ready
 - Cortex Analyst wrapper
 - Cortex Complete wrapper
 - Cortex Search wrapper
 - Cortex ML wrapper
 
 #### Step 2.2: Implement Intent Classifier
-📄 **Guide:** `03_STEP_2.2_INTENT_CLASSIFIER.md` ⏳ (Coming soon)
+📄 **Guide:** [03_STEP_2.2_INTENT_CLASSIFIER.md](03_STEP_2.2_INTENT_CLASSIFIER.md) 📝 Template Ready
 - Query classification logic
 - Intent patterns
 - Accuracy testing
 
 #### Step 2.3: Implement Response Enhancer
-📄 **Guide:** `04_STEP_2.3_RESPONSE_ENHANCER.md` ⏳ (Coming soon)
+📄 **Guide:** [04_STEP_2.3_RESPONSE_ENHANCER.md](04_STEP_2.3_RESPONSE_ENHANCER.md) 📝 Template Ready
 - Add benchmarks
 - Generate recommendations
 - Format for visualizations
@@ -63,13 +62,13 @@ Start here if you're setting up the project for the first time:
 ### Phase 3: Orchestration Layer (Week 3)
 
 #### Step 3.1: Implement API Routes
-📄 **Guide:** `05_STEP_3.1_API_ROUTES.md` ⏳ (Coming soon)
+📄 **Guide:** [05_STEP_3.1_API_ROUTES.md](05_STEP_3.1_API_ROUTES.md) 📝 Template Ready
 - Health route
 - Query route
 - Admin route
 
 #### Step 3.2: Add Conversation Management
-📄 **Guide:** `06_STEP_3.2_CONVERSATION_MANAGEMENT.md` ⏳ (Coming soon)
+📄 **Guide:** [06_STEP_3.2_CONVERSATION_MANAGEMENT.md](06_STEP_3.2_CONVERSATION_MANAGEMENT.md) 📝 Template Ready
 - Session handling
 - Context preservation
 - Multi-turn conversations
@@ -79,13 +78,13 @@ Start here if you're setting up the project for the first time:
 ### Phase 4: Presentation Layer (Week 4)
 
 #### Step 4.1: Build Web Application
-📄 **Guide:** `07_STEP_4.1_WEB_APP.md` ⏳ (Coming soon)
+📄 **Guide:** [07_STEP_4.1_WEB_APP.md](07_STEP_4.1_WEB_APP.md) 📝 Template Ready
 - Streamlit interface
 - Chat components
 - Visualizations
 
 #### Step 4.2: Integration Channels
-📄 **Guide:** `08_STEP_4.2_INTEGRATIONS.md` ⏳ (Coming soon)
+📄 **Guide:** [08_STEP_4.2_INTEGRATIONS.md](08_STEP_4.2_INTEGRATIONS.md) 📝 Template Ready
 - Slack bot
 - Teams bot
 - API clients
@@ -95,16 +94,16 @@ Start here if you're setting up the project for the first time:
 ### Phase 5: Evaluation & Deployment (Week 5)
 
 #### Step 5.1: Implement Evaluation Framework
-📄 **Guide:** `09_STEP_5.1_EVALUATION.md` ⏳ (Coming soon)
+📄 **Guide:** [09_STEP_5.1_EVALUATION.md](09_STEP_5.1_EVALUATION.md) 📝 Template Ready
 - Tier 1: Deterministic tests
 - Tier 2: Heuristic validation
 - Tier 3: LLM-as-judge
 
-#### Step 5.2: Production Deployment
-📄 **Guide:** `10_STEP_5.2_DEPLOYMENT.md` ⏳ (Coming soon)
-- Production checklist
-- Monitoring setup
-- Performance optimization
+#### Step 6.1: Production Deployment
+📄 **Guide:** [10_STEP_6.1_DEPLOYMENT.md](10_STEP_6.1_DEPLOYMENT.md) 📝 Template Ready
+- Snowpark Container Services
+- AWS/Azure deployment
+- Monitoring & security
 
 ---
 
@@ -114,24 +113,25 @@ Start here if you're setting up the project for the first time:
 
 **Setup & Configuration:**
 - Docker setup → [00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)
-- Windows commands → [00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)
 - Testing → [00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)
 
 **Data & Database:**
 - Data layer → [01_STEP_1.2_DATA_LAYER_SETUP.md](01_STEP_1.2_DATA_LAYER_SETUP.md)
 
 **Backend Development:**
-- Cortex services → `02_STEP_2.1_CORTEX_SERVICES.md` ⏳
-- Intent classification → `03_STEP_2.2_INTENT_CLASSIFIER.md` ⏳
-- API routes → `05_STEP_3.1_API_ROUTES.md` ⏳
+- Cortex services → [02_STEP_2.1_CORTEX_SERVICES.md](02_STEP_2.1_CORTEX_SERVICES.md)
+- Intent classification → [03_STEP_2.2_INTENT_CLASSIFIER.md](03_STEP_2.2_INTENT_CLASSIFIER.md)
+- Response enhancer → [04_STEP_2.3_RESPONSE_ENHANCER.md](04_STEP_2.3_RESPONSE_ENHANCER.md)
+- API routes → [05_STEP_3.1_API_ROUTES.md](05_STEP_3.1_API_ROUTES.md)
+- Conversation mgmt → [06_STEP_3.2_CONVERSATION_MANAGEMENT.md](06_STEP_3.2_CONVERSATION_MANAGEMENT.md)
 
 **Frontend Development:**
-- Web app → `07_STEP_4.1_WEB_APP.md` ⏳
-- Integrations → `08_STEP_4.2_INTEGRATIONS.md` ⏳
+- Web app → [07_STEP_4.1_WEB_APP.md](07_STEP_4.1_WEB_APP.md)
+- Integrations → [08_STEP_4.2_INTEGRATIONS.md](08_STEP_4.2_INTEGRATIONS.md)
 
 **Quality & Deployment:**
-- Evaluation → `09_STEP_5.1_EVALUATION.md` ⏳
-- Deployment → `10_STEP_5.2_DEPLOYMENT.md` ⏳
+- Evaluation → [09_STEP_5.1_EVALUATION.md](09_STEP_5.1_EVALUATION.md)
+- Deployment → [10_STEP_6.1_DEPLOYMENT.md](10_STEP_6.1_DEPLOYMENT.md)
 
 ---
 
@@ -140,19 +140,18 @@ Start here if you're setting up the project for the first time:
 | Phase | Step | Guide | Status |
 |-------|------|-------|--------|
 | 0 | Prerequisites | 00_DOCKER_SETUP_COMPLETE.md | ✅ Complete |
-| 0 | Prerequisites | 00_WINDOWS_DOCKER_COMMANDS.md | ✅ Complete |
 | 0 | Prerequisites | 00_TESTING_GUIDE.md | ✅ Complete |
 | 1.1 | Environment Setup | N/A | ✅ Complete |
 | 1.2 | Data Layer Setup | 01_STEP_1.2_DATA_LAYER_SETUP.md | ✅ Complete |
-| 2.1 | Cortex Services | 02_STEP_2.1_CORTEX_SERVICES.md | ⏳ Planned |
-| 2.2 | Intent Classifier | 03_STEP_2.2_INTENT_CLASSIFIER.md | ⏳ Planned |
-| 2.3 | Response Enhancer | 04_STEP_2.3_RESPONSE_ENHANCER.md | ⏳ Planned |
-| 3.1 | API Routes | 05_STEP_3.1_API_ROUTES.md | ⏳ Planned |
-| 3.2 | Conversation Mgmt | 06_STEP_3.2_CONVERSATION_MANAGEMENT.md | ⏳ Planned |
-| 4.1 | Web Application | 07_STEP_4.1_WEB_APP.md | ⏳ Planned |
-| 4.2 | Integrations | 08_STEP_4.2_INTEGRATIONS.md | ⏳ Planned |
-| 5.1 | Evaluation | 09_STEP_5.1_EVALUATION.md | ⏳ Planned |
-| 5.2 | Deployment | 10_STEP_5.2_DEPLOYMENT.md | ⏳ Planned |
+| 2.1 | Cortex Services | 02_STEP_2.1_CORTEX_SERVICES.md | 📝 Template |
+| 2.2 | Intent Classifier | 03_STEP_2.2_INTENT_CLASSIFIER.md | 📝 Template |
+| 2.3 | Response Enhancer | 04_STEP_2.3_RESPONSE_ENHANCER.md | 📝 Template |
+| 3.1 | API Routes | 05_STEP_3.1_API_ROUTES.md | 📝 Template |
+| 3.2 | Conversation Mgmt | 06_STEP_3.2_CONVERSATION_MANAGEMENT.md | 📝 Template |
+| 4.1 | Web Application | 07_STEP_4.1_WEB_APP.md | 📝 Template |
+| 4.2 | Integrations | 08_STEP_4.2_INTEGRATIONS.md | 📝 Template |
+| 5.1 | Evaluation | 09_STEP_5.1_EVALUATION.md | 📝 Template |
+| 6.1 | Deployment | 10_STEP_6.1_DEPLOYMENT.md | 📝 Template |
 
 ---
 
@@ -165,11 +164,12 @@ Start here if you're setting up the project for the first time:
 - Basic API endpoints
 - Data layer setup guide
 
-**🔄 In Progress:**
-- Step 1.2: Data Layer Setup (SQL scripts ready)
+**� Templates Created:**
+- All implementation guide templates (Steps 2.1-6.1)
+- Ready for code implementation
 
 **⏳ Next Up:**
-- Step 2.1: Cortex Service Wrappers
+- Step 2.1: Implement Cortex Service Wrappers
 
 ---
 
@@ -206,7 +206,6 @@ Start here if you're setting up the project for the first time:
 
 ### Common Issues
 - Docker problems → [00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)
-- Windows terminal issues → [00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)
 - Testing failures → [00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)
 
 ### Support Resources
@@ -232,6 +231,6 @@ When creating new guides:
 
 ---
 
-**Last Updated:** February 16, 2026
-**Current Phase:** Phase 1 - Foundation Setup
-**Current Step:** 1.2 - Data Layer Setup
+**Last Updated:** January 30, 2025  
+**Current Phase:** Phase 1 - Foundation Setup  
+**Current Step:** 2.1 - Cortex Services (Template Ready)
