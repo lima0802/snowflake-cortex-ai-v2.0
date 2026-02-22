@@ -1,0 +1,99 @@
+name: Deploy Semantic Model
+
+# Trigger on changes to semantic model files
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data-layer/semantic-models/semantic.yaml'
+      - 'scripts/manage_semantic_model.py'
+      - '.github/workflows/deploy-semantic-model.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'data-layer/semantic-models/semantic.yaml'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  validate-semantic-model:
+    name: Validate Semantic Model
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml snowflake-snowpark-python python-dotenv
+      
+      - name: Validate semantic.yaml syntax
+        run: |
+          python scripts/manage_semantic_model.py validate
+      
+      - name: Show model statistics
+        run: |
+          python scripts/manage_semantic_model.py stats
+      
+      - name: List tables
+        run: |
+          python scripts/manage_semantic_model.py list-tables
+
+  deploy-to-snowflake:
+    name: Deploy to Snowflake
+    runs-on: ubuntu-latest
+    needs: validate-semantic-model
+    # Only deploy on push to main (not on PRs)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml snowflake-snowpark-python python-dotenv
+      
+      - name: Create .env file from secrets
+        run: |
+          cat << EOF > .env
+          SNOWFLAKE_ACCOUNT=${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER=${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD=${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE=${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE=${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE=${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_SCHEMA=${{ secrets.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_SEMANTIC_STAGE=${{ secrets.SNOWFLAKE_SEMANTIC_STAGE }}
+          EOF
+      
+      - name: Deploy semantic model to Snowflake
+        run: |
+          python scripts/manage_semantic_model.py ci-deploy
+      
+      - name: Verify deployment
+        run: |
+          python scripts/manage_semantic_model.py verify
+      
+      - name: Summary
+        run: |
+          echo "✅ Semantic model deployed successfully!"
+          echo "🔗 View in Snowsight: https://app.snowflake.com/"
+          echo "📍 Location: @${{ secrets.SNOWFLAKE_DATABASE }}.${{ secrets.SNOWFLAKE_SCHEMA }}.SEMANTIC_MODELS"

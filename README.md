@@ -213,7 +213,38 @@ docker exec dia-orchestrator pytest -v
 
 See [guides/00_TESTING_GUIDE.md](guides/00_TESTING_GUIDE.md) for complete testing documentation.
 
-## 📊 Current Status
+## � CI/CD Automation
+
+### Semantic Model Management
+
+Automated Python-based workflow for managing and deploying semantic models to Snowflake:
+
+```powershell
+# Validate semantic model
+python scripts/manage_semantic_model.py validate
+
+# Show model statistics
+python scripts/manage_semantic_model.py stats
+
+# Deploy to Snowflake
+python scripts/manage_semantic_model.py deploy
+
+# Full CI/CD workflow (validate → deploy → verify)
+python scripts/manage_semantic_model.py ci-deploy
+```
+
+### GitHub Actions Integration
+
+Automated workflows trigger on push to `main`:
+- ✅ **Semantic Model Deployment** - Validates and deploys `semantic.yaml`
+- ✅ **Automated Testing** - Runs pytest suite (33 tests)
+- ✅ **Code Linting** - Checks Python code quality
+
+**Setup:** Add Snowflake credentials to GitHub Secrets (Settings → Secrets → Actions)
+
+See [SEMANTIC_CI_CD_QUICKSTART.md](SEMANTIC_CI_CD_QUICKSTART.md) and [guides/11_CI_CD_SETUP.md](guides/11_CI_CD_SETUP.md) for complete documentation.
+
+## �📊 Current Status
 
 **Phase 1: Foundation Setup** ✅
 - Docker containerization ✅

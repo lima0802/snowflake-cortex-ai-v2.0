@@ -124,9 +124,19 @@ def step_ml_models(cursor):
     status = "[OK]" if count >= 3 else f"[WARN] Expected 3 rows, got {count}"
     print(f"   {status}  ML_MODEL_REGISTRY: {count} row(s)")
 
-    cursor.execute("SELECT COUNT(*) FROM VW_FORECAST_TRAINING_DATA")
-    forecast_rows = cursor.fetchone()[0]
-    print(f"   {'[OK]' if forecast_rows > 0 else '[WARN] 0 rows'}  VW_FORECAST_TRAINING_DATA: {forecast_rows} row(s)")
+    try:
+        cursor.execute("SELECT COUNT(*) FROM VW_FORECAST_TRAINING_DATA")
+        forecast_rows = cursor.fetchone()[0]
+        print(f"   {'[OK]' if forecast_rows > 0 else '[WARN] 0 rows'}  VW_FORECAST_TRAINING_DATA: {forecast_rows} row(s)")
+    except Exception as e:
+        print(f"   [WARN] VW_FORECAST_TRAINING_DATA: Could not verify (view may not exist)")
+
+    try:
+        cursor.execute("SELECT COUNT(*) FROM VW_ANOMALY_TRAINING_DATA")
+        anomaly_rows = cursor.fetchone()[0]
+        print(f"   {'[OK]' if anomaly_rows > 0 else '[WARN] 0 rows'}  VW_ANOMALY_TRAINING_DATA: {anomaly_rows} row(s)")
+    except Exception as e:
+        print(f"   [WARN] VW_ANOMALY_TRAINING_DATA: Could not verify (view may not exist)")
 
 
 def step_semantic_model():

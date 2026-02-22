@@ -33,30 +33,41 @@
 
 **Implementation:**
 
-#### Option 1: Run SQL Script (Recommended)
+#### Option 1: Snowsight UI (Recommended - Easiest)
 
-1. **Navigate to project directory:**
-   ```powershell
-   cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\snowflake-cortex-ai-v2.0"
-   ```
-
-2. **Run the setup script via Snowflake:**
+1. **Open Snowsight:** https://app.snowflake.com/
+2. **Navigate to Worksheets** (left sidebar)
+3. **Create a new worksheet** (+ button)
+4. **Set context:**
    ```sql
-   -- Open SnowSQL or Snowsight and run:
    USE DATABASE PLAYGROUND_LM;
    USE SCHEMA CORTEX_ANALYTICS_ORCHESTRATOR;
    USE WAREHOUSE TEST;
+   ```
+5. **Open the SQL file** in VSCode: `data-layer/views/setup_semantic_views.sql`
+6. **Copy ALL contents** from the file
+7. **Paste into Snowsight worksheet**
+8. **Click "Run All"** button (or press Ctrl+Enter to run all)
 
-   -- Execute the views script
+#### Option 2: SnowSQL Command Line
+
+**⚠️ Note:** This requires SnowSQL installed on your machine (separate from Snowsight)
+
+1. **Install SnowSQL** (if not installed):
+   - Download from: https://docs.snowflake.com/en/user-guide/snowsql-install-config
+   
+2. **Run from PowerShell:**
+   ```powershell
+   cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\snowflake-cortex-ai-v2.0"
+   
+   # Connect to Snowflake
+   snowsql -a fvqlqib-tj68700 -u LIMA -d PLAYGROUND_LM -s CORTEX_ANALYTICS_ORCHESTRATOR -w TEST
+   
+   # Once connected, run:
    !source data-layer/views/setup_semantic_views.sql
    ```
 
-#### Option 2: Use Snowsight UI
-
-1. Open Snowsight: https://app.snowflake.com/
-2. Navigate to **Worksheets**
-3. Copy contents from `data-layer/views/setup_semantic_views.sql`
-4. Execute the SQL
+**Important:** The `!source` command ONLY works in SnowSQL command-line tool, NOT in Snowsight UI!
 
 #### Option 3: Use Python Script
 
