@@ -200,45 +200,117 @@ This guide provides a detailed, sequential approach to implementing DIA v2 from 
 ### Prerequisites
 
 - [ ] Snowflake account with Cortex services enabled
-- [ ] Python 3.11+ installed locally
+- [ ] Docker Desktop installed and running (Windows 10/11 with WSL 2)
 - [ ] Git repository initialized
 - [ ] .env file configured with Snowflake credentials
+
+> **📘 Docker Setup Guide:** See [guides/00_DOCKER_SETUP_COMPLETE.md](guides/00_DOCKER_SETUP_COMPLETE.md) for detailed installation instructions.
 
 ---
 
 ### Phase 1: Foundation Setup (Week 1)
 
-#### Step 1.1: Environment Setup
-**Goal:** Configure development environment and dependencies
+#### Step 1.1: Docker Environment Setup
+**Goal:** Configure Docker-based development environment with containerized services
 
-1. **Install Python dependencies:**
-   ```bash
-   # For orchestrator
-   cd orchestrator/
-   pip install -r requirements.txt
+> **📘 Detailed Guide:** See [guides/00_DOCKER_SETUP_COMPLETE.md](guides/00_DOCKER_SETUP_COMPLETE.md) for complete step-by-step instructions from zero.
 
-   # For web app
-   cd ../web-app/
-   pip install -r requirements.txt
+**Quick Setup (5 minutes):**
+
+1. **Install Docker Desktop for Windows:**
+   - Download from: https://www.docker.com/products/docker-desktop/
+   - Install with WSL 2 backend (recommended)
+   - Start Docker Desktop and verify: `docker --version`
+
+2. **Configure Environment Variables:**
+   ```powershell
+   # Create .env file in project root
+   New-Item -Path .env -ItemType File
+   
+   # Add your Snowflake credentials:
+   SNOWFLAKE_ACCOUNT=your_account.region
+   SNOWFLAKE_USER=your_username
+   SNOWFLAKE_PASSWORD=your_password
+   SNOWFLAKE_WAREHOUSE=your_warehouse
+   SNOWFLAKE_DATABASE=PLAYGROUND_LM
+   SNOWFLAKE_SCHEMA=CORTEX_ANALYTICS_ORCHESTRATOR
+   SNOWFLAKE_ROLE=your_role
+   ENVIRONMENT=development
+   LOG_LEVEL=INFO
    ```
 
-2. **Verify Snowflake connection:**
-   ```bash
-   cd ../tests/
-   python test_connection.py
-   ```
-   - Expected: Successful connection and query execution
-   - Troubleshoot: Check .env credentials if fails
-
-3. **Test logging configuration:**
-   ```python
-   from orchestrator.utils.logging import configure_logging, get_logger
-   configure_logging()
-   logger = get_logger(__name__)
-   logger.info("test", component="setup")
+3. **Build and Start Services:**
+   ```powershell
+   # Build images and start containers (first time)
+   docker-compose up --build
+   
+   # Wait for these messages:
+   # orchestrator_1  | INFO: Uvicorn running on http://0.0.0.0:8000
+   # web-app_1      | URL: http://0.0.0.0:8501
    ```
 
-**Deliverable:** ✅ Working Python environment with Snowflake connectivity
+4. **Verify Services Are Running:**
+   ```powershell
+   # Check container status
+   docker-compose ps
+   
+   # Test orchestrator health
+   curl http://localhost:8000/api/v1/health
+   
+   # Open API documentation
+   start http://localhost:8000/docs
+   
+   # Open web application
+   start http://localhost:8501
+   ```
+
+5. **Test Snowflake Connection:**
+   ```powershell
+   # Run connection test inside container
+   docker exec dia-orchestrator python ../tests/test_connection.py
+   
+   # Expected: Successful connection and query execution
+   # Troubleshoot: Check .env credentials if fails
+   ```
+
+6. **Test Logging Configuration:**
+   ```powershell
+   # Run logging test inside container
+   docker exec dia-orchestrator python test_logging.py
+   
+   # Expected: Structured JSON log output
+   ```
+
+**Development Workflow:**
+- Edit code locally in `orchestrator/` or `web-app/`
+- Changes auto-reload (volumes mounted)
+- Watch logs: `docker-compose logs -f orchestrator`
+- Restart if needed: `docker-compose restart orchestrator`
+
+**Common Commands:**
+```powershell
+# Start services (background)
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Rebuild after requirements.txt changes
+docker-compose up --build orchestrator
+
+# Execute commands in container
+docker exec dia-orchestrator python <script.py>
+docker exec dia-orchestrator pytest -v
+```
+
+**Deliverable:** ✅ Docker environment running with:
+- Orchestrator API accessible at http://localhost:8000
+- Web App accessible at http://localhost:8501
+- Snowflake connectivity verified
+- Auto-reload enabled for development
 
 ---
 
@@ -695,28 +767,58 @@ python evaluation/test_suite.py --tier all --report html
 
 ### Phase 6: Deployment & Operations (Week 6)
 
-#### Step 6.1: Containerize Orchestrator
-**Goal:** Package orchestrator as Docker container
+#### Step 6.1: Production Container Preparation
+**Goal:** Prepare Docker containers for production deployment
 
-1. **Build Docker image:**
-   ```bash
-   cd orchestrator/
-   docker build -t dia-orchestrator:v2.0 .
+> **Note:** Docker containerization is already complete from Step 1.1. This step focuses on production optimizations.
+
+1. **Optimize Docker Images for Production:**
+   ```powershell
+   # Build production images with optimizations
+   docker-compose -f docker-compose.prod.yml build --no-cache
+   
+   # Tag for registry
+   docker tag dia-orchestrator:latest your-registry/dia-orchestrator:v2.0
+   docker tag dia-webapp:latest your-registry/dia-webapp:v2.0
    ```
 
-2. **Run container locally:**
-   ```bash
-   docker run -p 8000:8000 \
-     --env-file ../.env \
-     dia-orchestrator:v2.0
-   ```
-
-3. **Test containerized app:**
-   ```bash
+2. **Test Production Images Locally:**
+   ```powershell
+   # Run with production environment
+   docker-compose -f docker-compose.prod.yml up
+   
+   # Verify health
    curl http://localhost:8000/api/v1/health
    ```
 
-**Deliverable:** ✅ Containerized orchestrator running locally
+3. **Security Scan Images:**
+   ```powershell
+   # Scan for vulnerabilities
+   docker scan dia-orchestrator:v2.0
+   docker scan dia-webapp:v2.0
+   
+   # Fix any high/critical vulnerabilities
+   ```
+
+4. **Push to Container Registry:**
+   ```powershell
+   # Login to your registry (Docker Hub, ACR, ECR, or Snowflake)
+   docker login your-registry
+   
+   # Push images
+   docker push your-registry/dia-orchestrator:v2.0
+   docker push your-registry/dia-webapp:v2.0
+   ```
+
+**Production Optimizations:**
+- Multi-stage builds to reduce image size
+- Non-root user for security
+- Health check endpoints configured
+- Resource limits defined
+- Secrets management (not in .env)
+- Logging to stdout/stderr for container orchestration
+
+**Deliverable:** ✅ Production-ready container images pushed to registry
 
 ---
 
