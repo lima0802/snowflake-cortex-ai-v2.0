@@ -13,7 +13,7 @@ cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\sno
 docker exec dia-orchestrator python /tests/test_connection.py
 
 # Test logging (⏳ Needs implementation)
-docker exec dia-orchestrator python test_logging.py
+docker exec dia-orchestrator python /tests/test_logging.py
 
 # Test API health
 curl http://localhost:8000/api/v1/health
@@ -42,8 +42,8 @@ cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\sno
 # Execute Python commands directly
 docker exec dia-orchestrator python -c "print('Hello from container')"
 
-# Run a test script
-docker exec dia-orchestrator python test_logging.py
+# Run logging test
+docker exec dia-orchestrator python /tests/test_logging.py
 
 # Run Snowflake connection test
 docker exec dia-orchestrator python /tests/test_connection.py
@@ -62,7 +62,7 @@ docker exec -it dia-orchestrator /bin/bash
 
 # When inside container (root@...:/app#):
 ls -la
-python test_logging.py
+python /tests/test_logging.py
 python /tests/test_connection.py
 exit  # to leave container
 ```
@@ -80,25 +80,20 @@ exit  # to leave container
 
 **Best for:** Repeatable, documented tests
 
-**Location:** Create test files in your project directories:
-- `orchestrator/test_logging.py` - Test logging configuration
-- `orchestrator/test_services.py` - Test Cortex services
+**Location:** Test files are in the `tests/` directory (mounted to `/tests` in container):
+- `tests/test_logging.py` - Test logging configuration (already exists)
 - `tests/test_connection.py` - Test Snowflake connection (already exists)
 
-**Example:**
-```python
-# orchestrator/test_logging.py
-if __name__ == "__main__":
-    from utils.logging import configure_logging, get_logger
-    configure_logging()
-    logger = get_logger(__name__)
-    logger.info("test", component="setup")
+**Example - Run existing tests:**
+```bash
+# Run logging test
+docker exec dia-orchestrator python /tests/test_logging.py
+
+# Run connection test
+docker exec dia-orchestrator python /tests/test_connection.py
 ```
 
-**Run inside container:**
-```bash
-docker exec dia-orchestrator python test_logging.py
-```
+**Note:** You can create additional test files in the `tests/` directory and run them the same way.
 
 ---
 
@@ -185,7 +180,7 @@ cd "c:\Users\LiMa\OneDrive - WPP Cloud\Documentos\Li\05_Project\01_Volvo\DIA\sno
 Before you can test these, implement the modules:
 
 1. **Logging Configuration** (`orchestrator/utils/logging.py`)
-   - Test with: `docker exec dia-orchestrator python test_logging.py`
+   - Test with: `docker exec dia-orchestrator python /tests/test_logging.py`
    - Status: ❌ Not implemented
 
 2. **Cortex Services** (`orchestrator/services/`)
@@ -253,7 +248,7 @@ docker-compose logs -f orchestrator
 ### Test After Implementation
 ```powershell
 # Test logging (once implemented)
-docker exec dia-orchestrator python test_logging.py
+docker exec dia-orchestrator python /tests/test_logging.py
 
 # Run all pytest tests
 docker exec dia-orchestrator pytest -v
@@ -289,7 +284,7 @@ docker exec dia-orchestrator python test_connection.py
 docker exec -it dia-orchestrator /bin/bash
 
 # Option 2: Remove -it flags
-docker exec dia-orchestrator python test_logging.py
+docker exec dia-orchestrator python /tests/test_logging.py
 
 # Option 3: Use Docker Desktop GUI
 # Containers → dia-orchestrator → CLI button
@@ -358,7 +353,7 @@ winpty docker exec -it dia-orchestrator python
 **Option 3: Run Non-Interactive Commands (Works Everywhere)**
 ```bash
 # Execute single commands without shell
-docker exec dia-orchestrator python test_logging.py
+docker exec dia-orchestrator python /tests/test_logging.py
 docker exec dia-orchestrator pip list
 docker exec dia-orchestrator python -c "print('Hello')"
 
@@ -409,7 +404,7 @@ docker-compose up --build orchestrator
 | API Health | `curl http://localhost:8000/api/v1/health` | ✅ Working |
 | API Docs | `start http://localhost:8000/docs` | ✅ Working |
 | Web App | `start http://localhost:8501` | ✅ Working |
-| Logging Module | `docker exec dia-orchestrator python test_logging.py` | ⏳ Not implemented |
+| Logging Module | `docker exec dia-orchestrator python /tests/test_logging.py` | ⏳ Not implemented |
 | Cortex Services | N/A | ⏳ Not implemented |
 | Intent Classifier | N/A | ⏳ Not implemented |
 | pytest Suite | `docker exec dia-orchestrator pytest -v` | ⏳ Not implemented |
@@ -418,7 +413,7 @@ docker-compose up --build orchestrator
 
 1. ✅ **You are here:** Basic Docker setup working, Snowflake connection tested
 2. ⏳ **Next:** Implement `orchestrator/utils/logging.py` (Phase 1, Step 1.1)
-3. ⏳ **Then:** Test logging with `docker exec dia-orchestrator python test_logging.py`
+3. ⏳ **Then:** Test logging with `docker exec dia-orchestrator python /tests/test_logging.py`
 4. ⏳ **Continue:** Follow implementation plan phases
 
 ## 🎯 Key Takeaways
