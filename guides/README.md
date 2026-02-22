@@ -12,7 +12,7 @@ Guides are organized by implementation phase and numbered for easy navigation.
 
 Start here if you're setting up the project for the first time:
 
-- **[00_DOCKER_QUICKSTART.md](00_DOCKER_QUICKSTART.md)** - Docker basics and setup
+- **[00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)** - Complete Docker setup guide (from zero installation to running services)
 - **[00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)** - Windows-specific Docker commands
 - **[00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)** - How to test your implementation
 
@@ -113,7 +113,7 @@ Start here if you're setting up the project for the first time:
 ### By Task Type
 
 **Setup & Configuration:**
-- Docker setup → [00_DOCKER_QUICKSTART.md](00_DOCKER_QUICKSTART.md)
+- Docker setup → [00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)
 - Windows commands → [00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)
 - Testing → [00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)
 
@@ -139,7 +139,7 @@ Start here if you're setting up the project for the first time:
 
 | Phase | Step | Guide | Status |
 |-------|------|-------|--------|
-| 0 | Prerequisites | 00_DOCKER_QUICKSTART.md | ✅ Complete |
+| 0 | Prerequisites | 00_DOCKER_SETUP_COMPLETE.md | ✅ Complete |
 | 0 | Prerequisites | 00_WINDOWS_DOCKER_COMMANDS.md | ✅ Complete |
 | 0 | Prerequisites | 00_TESTING_GUIDE.md | ✅ Complete |
 | 1.1 | Environment Setup | N/A | ✅ Complete |
@@ -205,7 +205,7 @@ Start here if you're setting up the project for the first time:
 ## 🆘 Getting Help
 
 ### Common Issues
-- Docker problems → [00_DOCKER_QUICKSTART.md](00_DOCKER_QUICKSTART.md)
+- Docker problems → [00_DOCKER_SETUP_COMPLETE.md](00_DOCKER_SETUP_COMPLETE.md)
 - Windows terminal issues → [00_WINDOWS_DOCKER_COMMANDS.md](00_WINDOWS_DOCKER_COMMANDS.md)
 - Testing failures → [00_TESTING_GUIDE.md](00_TESTING_GUIDE.md)
 

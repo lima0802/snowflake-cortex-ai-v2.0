@@ -44,7 +44,7 @@ Snowflake Cortex AI-powered analytics orchestrator for SFMC email performance an
 All step-by-step guides are in the **[guides/](guides/)** directory:
 
 - **[guides/README.md](guides/README.md)** - Master guide index and progress tracker
-- **[guides/00_DOCKER_QUICKSTART.md](guides/00_DOCKER_QUICKSTART.md)** - Docker setup and basics
+- **[guides/00_DOCKER_SETUP_COMPLETE.md](guides/00_DOCKER_SETUP_COMPLETE.md)** - Complete Docker setup guide (from zero)
 - **[guides/00_WINDOWS_DOCKER_COMMANDS.md](guides/00_WINDOWS_DOCKER_COMMANDS.md)** - Windows-specific commands
 - **[guides/00_TESTING_GUIDE.md](guides/00_TESTING_GUIDE.md)** - Testing procedures
 - **[guides/01_STEP_1.2_DATA_LAYER_SETUP.md](guides/01_STEP_1.2_DATA_LAYER_SETUP.md)** - Data layer implementation
