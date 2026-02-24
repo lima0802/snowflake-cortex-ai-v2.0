@@ -180,8 +180,8 @@ time_dimensions:
   - month_full
   - month_long
   description: Full month name (January, February, etc.). Use for full month display.
-  expr: "CASE MONTH(SEND_DATE)\n  WHEN 1 THEN 'January'\n  WHEN 2 THEN 'February'\n  WHEN 3 THEN 'March'\n  WHEN 4 THEN\
-    \ 'April'\n  WHEN 5 THEN 'May'\n  WHEN 6 THEN 'June'\n  WHEN 7 THEN 'July'\n  WHEN 8 THEN 'August'\n  WHEN 9 THEN 'September'\n\
+  expr: "CASE MONTH(SEND_DATE)\n  WHEN 1 THEN 'January'\n  WHEN 2 THEN 'February'\n  WHEN 3 THEN 'March'\n  WHEN 4 THEN 'April'\n\
+    \  WHEN 5 THEN 'May'\n  WHEN 6 THEN 'June'\n  WHEN 7 THEN 'July'\n  WHEN 8 THEN 'August'\n  WHEN 9 THEN 'September'\n\
     \  WHEN 10 THEN 'October'\n  WHEN 11 THEN 'November'\n  WHEN 12 THEN 'December'\nEND"
   data_type: VARCHAR(134217728)
   sample_values:
@@ -260,8 +260,8 @@ time_dimensions:
   - quarter
   - quarterly
   - send_qtr
-  description: First day of the quarter for quarterly aggregation. Use when user asks about "quarterly performance", "by
-    quarter", "Q1/Q2/Q3/Q4", or "QoQ trends".
+  description: First day of the quarter for quarterly aggregation. Use when user asks about "quarterly performance", "by quarter",
+    "Q1/Q2/Q3/Q4", or "QoQ trends".
   expr: DATE_TRUNC('QUARTER', SEND_DATE)
   data_type: DATE
 - name: SEND_YEAR
@@ -458,8 +458,8 @@ facts:
   synonyms:
   - raw_unique_clicks
   - unique_clicks_raw
-  description: "The count of unique recipients who clicked (deduplicated).\nPRIMARY METRIC for click rate calculations:\
-    \ \n- CTR (click_rate) = UNIQUE_CLICKS / DELIVERED\n- CTOR (click_to_open_rate) = UNIQUE_CLICKS / UNIQUE_OPENS\nSynonyms:\
+  description: "The count of unique recipients who clicked (deduplicated).\nPRIMARY METRIC for click rate calculations: \n\
+    - CTR (click_rate) = UNIQUE_CLICKS / DELIVERED\n- CTOR (click_to_open_rate) = UNIQUE_CLICKS / UNIQUE_OPENS\nSynonyms:\
     \ unique click count, distinct clicks, individual clickers.\n"
   expr: UNIQUE_CLICKS
   data_type: NUMBER(38,0)
@@ -533,9 +533,9 @@ filters:
   - stable_performance
   description: "Markets with all metrics within healthy premium automotive ranges (2024-2025): Open Rate >15%, CTOR >12%,\
     \ Opt-out <0.25%, Bounce <1.5%. Use when user asks about \"healthy markets\", \"good health\", \"stable performance\"\
-    .\n\nIMPORTANT: Apply with HAVING clause after aggregation:\nHAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) -\
-    \ SUM(bounces), 0) >= 15\n   AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) >= 12\n   AND SUM(unsubscribes)\
-    \ * 100.0 / NULLIF(SUM(sends), 0) <= 0.25\n   AND SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0) <= 1.5"
+    .\n\nIMPORTANT: Apply with HAVING clause after aggregation:\nHAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces),\
+    \ 0) >= 15\n   AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) >= 12\n   AND SUM(unsubscribes) * 100.0 /\
+    \ NULLIF(SUM(sends), 0) <= 0.25\n   AND SUM(bounces) * 100.0 / NULLIF(SUM(sends), 0) <= 1.5"
   expr: "SUM(UNIQUE_OPENS) * 100.0 / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0) >= 15\n   AND SUM(UNIQUE_CLICKS) * 100.0 / NULLIF(SUM(UNIQUE_OPENS),\
     \ 0) >= 12\n   AND SUM(UNSUBSCRIBES) * 100.0 / NULLIF(SUM(SENDS), 0) <= 0.25\n   AND SUM(BOUNCES) * 100.0 / NULLIF(SUM(SENDS),\
     \ 0) <= 1.5"
@@ -561,9 +561,9 @@ filters:
   - high_unsubscribe
   - opt-out_warning
   - unsubscribe_concerns
-  description: 'Markets or campaigns with opt-out rate above 0.25% premium automotive threshold (2024-2025). Note: Gmail
-    changes made unsubscribing easier, so rates are higher industry-wide. Use when user asks about "high opt-out", "unsubscribe
-    concerns", "opt-out warning".
+  description: 'Markets or campaigns with opt-out rate above 0.25% premium automotive threshold (2024-2025). Note: Gmail changes
+    made unsubscribing easier, so rates are higher industry-wide. Use when user asks about "high opt-out", "unsubscribe concerns",
+    "opt-out warning".
 
 
     IMPORTANT: Apply with HAVING clause after aggregation:
@@ -595,8 +595,8 @@ filters:
   - last_three_months
   - past_3_months
   - previous_3_months
-  description: 'The 3 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Oct-Dec 2024. Use
-    when user asks about "last 3 months", "past 3 months", "previous 3 months".'
+  description: 'The 3 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Oct-Dec 2024. Use when
+    user asks about "last 3 months", "past 3 months", "previous 3 months".'
   expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -3, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
 - name: last_6_months
   synonyms:
@@ -605,8 +605,8 @@ filters:
   - last_six_months
   - past_6_months
   - previous_6_months
-  description: 'The 6 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Jul-Dec 2024. Use
-    when user asks about "last 6 months", "past 6 months", "last half year".'
+  description: 'The 6 most recent COMPLETE calendar months. Example: If today is Jan 15, 2025, returns Jul-Dec 2024. Use when
+    user asks about "last 6 months", "past 6 months", "last half year".'
   expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
 - name: last_month
   synonyms:
@@ -614,8 +614,8 @@ filters:
   - last_month
   - previous_month
   - prior_month
-  description: 'The most recent COMPLETE calendar month. Example: If today is Jan 15, 2025, returns Dec 1-31, 2024. Use
-    when user asks about "last month", "previous month", "prior month".'
+  description: 'The most recent COMPLETE calendar month. Example: If today is Jan 15, 2025, returns Dec 1-31, 2024. Use when
+    user asks about "last month", "previous month", "prior month".'
   expr: SEND_DATE >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('MONTH', CURRENT_DATE)
 - name: last_quarter
   synonyms:
@@ -624,8 +624,8 @@ filters:
   - lq
   - previous_quarter
   - prior_quarter
-  description: 'The most recent COMPLETE quarter. Example: If today is Jan 15, 2025, returns Q4 2024 (Oct-Dec). Use when
-    user asks about "last quarter", "previous quarter", "prior quarter", "last Q".'
+  description: 'The most recent COMPLETE quarter. Example: If today is Jan 15, 2025, returns Q4 2024 (Oct-Dec). Use when user
+    asks about "last quarter", "previous quarter", "prior quarter", "last Q".'
   expr: SEND_DATE >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('QUARTER', CURRENT_DATE)
 - name: last_rolling_30_days
   synonyms:
@@ -652,9 +652,9 @@ filters:
   description: The most recent COMPLETE week (Monday-Sunday). Use when user asks about "last week", "previous week".
   expr: SEND_DATE >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE)) AND SEND_DATE < DATE_TRUNC('WEEK', CURRENT_DATE)
 - name: last_week_sends
-  description: Filters for email campaigns sent during the previous complete week (Monday to Sunday). Use when questions
-    ask about 'last week performance', 'previous week results', 'week-over-week comparison', 'recent weekly activity', or
-    'last week's campaigns'. Helps analyze recent email performance trends and weekly campaign effectiveness.
+  description: Filters for email campaigns sent during the previous complete week (Monday to Sunday). Use when questions ask
+    about 'last week performance', 'previous week results', 'week-over-week comparison', 'recent weekly activity', or 'last
+    week's campaigns'. Helps analyze recent email performance trends and weekly campaign effectiveness.
   expr: SEND_DATE < DATE_TRUNC('WEEK', CURRENT_DATE) AND SEND_DATE >= DATE_TRUNC('WEEK', DATEADD(WEEK, -1, CURRENT_DATE))
 - name: last_year
   synonyms:
@@ -710,10 +710,10 @@ filters:
   - peak_opens
   - premier_opens
   - superior_opens
-  description: "Markets or campaigns exceeding premium automotive benchmarks (2024-2025): Open Rate >25%, CTOR >18%. Use\
-    \ when user asks about \"top performers\", \"best campaigns\", \"high engagement\", \"excellent performance\".\n\nIMPORTANT:\
-    \ Apply with HAVING clause after aggregation:\nHAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces),\
-    \ 0) > 25\n   AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) > 18"
+  description: "Markets or campaigns exceeding premium automotive benchmarks (2024-2025): Open Rate >25%, CTOR >18%. Use when\
+    \ user asks about \"top performers\", \"best campaigns\", \"high engagement\", \"excellent performance\".\n\nIMPORTANT:\
+    \ Apply with HAVING clause after aggregation:\nHAVING SUM(unique_opens) * 100.0 / NULLIF(SUM(sends) - SUM(bounces), 0)\
+    \ > 25\n   AND SUM(unique_clicks) * 100.0 / NULLIF(SUM(unique_opens), 0) > 18"
   expr: "SUM(UNIQUE_OPENS) * 100.0 / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0) > 25\n   AND SUM(UNIQUE_CLICKS) * 100.0 / NULLIF(SUM(UNIQUE_OPENS),\
     \ 0) > 18"
 metrics:
@@ -729,9 +729,9 @@ metrics:
   - failed_delivery_rate
   - hard_bounce_rate
   - undeliverable_rate
-  description: 'Percentage of emails that bounced (undeliverable). Formula: (bounces / sends) * 100. Premium automotive
-    benchmark (2024-2025): <1.5% is healthy, 1.5-2.5% is warning, >2.5% is critical. High bounce rate indicates list quality
-    issues requiring attention.'
+  description: 'Percentage of emails that bounced (undeliverable). Formula: (bounces / sends) * 100. Premium automotive benchmark
+    (2024-2025): <1.5% is healthy, 1.5-2.5% is warning, >2.5% is critical. High bounce rate indicates list quality issues
+    requiring attention.'
   expr: ROUND(SUM(BOUNCES) / NULLIF(SUM(SENDS), 0), 3)
   access_modifier: public_access
 - name: BOUNCE_RATE_PCT
@@ -759,8 +759,8 @@ metrics:
   - clickthrough_rate
   - ctr
   - email_ctr
-  description: 'Percentage of unique clicks out of delivered emails (Click-Through Rate / CTR). Formula: (unique_clicks
-    / delivered) * 100, where delivered = sends - bounces. Use for questions about ''click rate'', ''CTR'', ''click-through
+  description: 'Percentage of unique clicks out of delivered emails (Click-Through Rate / CTR). Formula: (unique_clicks /
+    delivered) * 100, where delivered = sends - bounces. Use for questions about ''click rate'', ''CTR'', ''click-through
     rate''. Premium automotive benchmark (2024-2025): 1.5-3% is good, >3% is strong.
 
     '
@@ -827,9 +827,9 @@ metrics:
   - first_send_date
   - initial_send_date
   - start_date
-  description: Returns the earliest date when emails were sent in the dataset. Use when questions ask about 'first send
-    date', 'earliest campaign', 'data history start', 'initial activity', or 'data coverage start date'. Helps understand
-    historical data coverage, identify when email marketing began, and determine the full reporting period span.
+  description: Returns the earliest date when emails were sent in the dataset. Use when questions ask about 'first send date',
+    'earliest campaign', 'data history start', 'initial activity', or 'data coverage start date'. Helps understand historical
+    data coverage, identify when email marketing began, and determine the full reporting period span.
   expr: MIN(SEND_DATE)
   access_modifier: public_access
 - name: LAST_SEND_DATE
@@ -845,8 +845,8 @@ metrics:
   - most_recent_activity
   - most_recent_date
   description: Returns the most recent date when emails were sent in the dataset. Use when questions ask about 'latest send
-    date', 'most recent campaign', 'data freshness', 'last activity', or 'data coverage end date'. Helps understand data
-    currency and latest campaign activity.
+    date', 'most recent campaign', 'data freshness', 'last activity', or 'data coverage end date'. Helps understand data currency
+    and latest campaign activity.
   expr: MAX(SEND_DATE)
   access_modifier: public_access
 - name: NUM_SEND_DAYS
@@ -952,8 +952,8 @@ metrics:
   - gross_opens
   - open_count
   - total_opens
-  description: 'Total number of email opens across all recipients. Includes multiple opens by the same recipient (gross
-    opens). Use when questions ask about ''total opens'', ''all opens'', ''gross opens'', or ''open count''.
+  description: 'Total number of email opens across all recipients. Includes multiple opens by the same recipient (gross opens).
+    Use when questions ask about ''total opens'', ''all opens'', ''gross opens'', or ''open count''.
 
     '
   expr: SUM(OPENS)
@@ -1031,8 +1031,8 @@ metrics:
   - net_open_rate
   - unique_open_rate
   - uor
-  description: 'Percentage of unique recipients who opened out of delivered emails. Formula: (unique_opens / delivered)
-    * 100, where delivered = sends - bounces. Same calculation as OPEN_RATE - kept for compatibility and clarity.
+  description: 'Percentage of unique recipients who opened out of delivered emails. Formula: (unique_opens / delivered) *
+    100, where delivered = sends - bounces. Same calculation as OPEN_RATE - kept for compatibility and clarity.
 
     '
   expr: ROUND(SUM(UNIQUE_OPENS) / NULLIF(SUM(SENDS) - SUM(BOUNCES), 0), 3)
@@ -1060,8 +1060,8 @@ metrics:
   - unsubscribe_percentage
   - unsubscribe_rate_percent
   description: 'Calculates the percentage of recipients who opted out/unsubscribed, rounded to 1 decimal (e.g., 0.3%). Formula:
-    (unsubscribes / sends) * 100. Premium automotive benchmark (2024-2025): <0.25% is healthy, >0.4% is critical. Note:
-    Gmail 2024 changes increased rates industry-wide.'
+    (unsubscribes / sends) * 100. Premium automotive benchmark (2024-2025): <0.25% is healthy, >0.4% is critical. Note: Gmail
+    2024 changes increased rates industry-wide.'
   expr: ROUND(100.0 * SUM(UNSUBSCRIBES) / NULLIF(SUM(SENDS), 0), 1)
   access_modifier: public_access
 primary_key:

@@ -1,6 +1,6 @@
 name: V_FACT_SFMC_PERFORMANCE_BLOCK
-description: The table contains records of email marketing block performance metrics. Each record represents a specific
-  email block's performance within individual email campaigns, including click engagement data and timing information.
+description: The table contains records of email marketing block performance metrics. Each record represents a specific email
+  block's performance within individual email campaigns, including click engagement data and timing information.
 base_table:
   database: DEV_MARCOM_DB
   schema: DM

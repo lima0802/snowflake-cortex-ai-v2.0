@@ -10,9 +10,9 @@ synonyms:
 - regional_data
 - sales_territory
 - territory_data
-description: The table contains records of countries with their associated geographic and business classifications. Each
-  record represents a single country and includes regional groupings, sales territories, and market designations used for
-  organizational reporting and analysis.
+description: The table contains records of countries with their associated geographic and business classifications. Each record
+  represents a single country and includes regional groupings, sales territories, and market designations used for organizational
+  reporting and analysis.
 base_table:
   database: DEV_MARCOM_DB
   schema: DM
@@ -117,8 +117,8 @@ dimensions:
 
     - US/CAN: "USA", "US", "United States", "America", "Canada", "North America", "NA"
 
-    - LATAM: "Latin America", "South America", "Central America", "LatAm", "GILA" (GILA specifically refers to VCBR and
-    VCMX within LATAM)
+    - LATAM: "Latin America", "South America", "Central America", "LatAm", "GILA" (GILA specifically refers to VCBR and VCMX
+    within LATAM)
 
     - Other: "Other markets", "Greater China" (if not asking specifically about China), "Global"
 
@@ -371,8 +371,8 @@ filters:
   - apec_nsc
   - asia_pacific_nsc
   description: Filters for APEC NSC (National Sales Companies) sub-region including Japan, South Korea, Australia, Thailand,
-    Malaysia, India, and Bangladesh. These are key APEC markets with established sales operations. Use when asking about
-    major APEC markets or APEC NSC specifically. Provides detailed sub-regional analysis within APEC.
+    Malaysia, India, and Bangladesh. These are key APEC markets with established sales operations. Use when asking about major
+    APEC markets or APEC NSC specifically. Provides detailed sub-regional analysis within APEC.
   expr: sales_area = 'APEC NSC'
 - name: central_europe_subarea
   synonyms:
@@ -465,10 +465,9 @@ filters:
   - mexico
   - south_america
   - south_american
-  description: Filters for Latin America (LATAM) region markets. Use when questions ask about 'Latin America', 'LATAM',
-    'South America', 'Central America', 'LatAm', or mention specific Latin American countries like Mexico, Brazil, Argentina.
-    Helps analyze performance across the Latin American regional grouping for geographic comparisons and regional strategy
-    assessment.
+  description: Filters for Latin America (LATAM) region markets. Use when questions ask about 'Latin America', 'LATAM', 'South
+    America', 'Central America', 'LatAm', or mention specific Latin American countries like Mexico, Brazil, Argentina. Helps
+    analyze performance across the Latin American regional grouping for geographic comparisons and regional strategy assessment.
   expr: region_name_group = 'LATAM'
 - name: nordics_salesarea
   synonyms:
@@ -503,9 +502,8 @@ filters:
   - southern_europe_area
   - southern_european_region
   description: Filters for Southern European markets including Spain (VCES), France (VCFR), and Italy (VCIT). Use when questions
-    ask about 'Southern Europe', 'Mediterranean markets', 'France Spain Italy', 'Romance language markets', or specific
-    combinations of these three countries. Helps analyze performance patterns across culturally and linguistically similar
-    European markets.
+    ask about 'Southern Europe', 'Mediterranean markets', 'France Spain Italy', 'Romance language markets', or specific combinations
+    of these three countries. Helps analyze performance patterns across culturally and linguistically similar European markets.
   expr: VC_COUNTRY_CODE IN ('VCES', 'VCFR', 'VCIT')
 - name: uk_ireland_salesarea
   synonyms:
@@ -544,8 +542,8 @@ filters:
   - western_european
   - western_european_markets
   description: Filters for Western Europe sub-region including France (VCFR), Spain (VCES), Italy (VCIT), Portugal (VCPT),
-    and Belgium (VCBE). Use when questions ask about 'Western Europe', 'Western European markets', 'Romance Europe', or
-    mention these countries together. Provides detailed sub-regional analysis within EMEA.
+    and Belgium (VCBE). Use when questions ask about 'Western Europe', 'Western European markets', 'Romance Europe', or mention
+    these countries together. Provides detailed sub-regional analysis within EMEA.
   expr: sales_area = 'Western Europe'
 primary_key:
   columns:

@@ -26,8 +26,7 @@ dimensions:
   - multivariate_test
   - split_test
   - test_version
-  description: 'A method of marketing testing where two versions (A and B) are compared to determine which one performs
-    better.
+  description: 'A method of marketing testing where two versions (A and B) are compared to determine which one performs better.
 
     '
   expr: AB_TESTING
@@ -407,18 +406,18 @@ dimensions:
   - type
   description: 'Classifies email communication type based on email naming conventions.
 
-    - ''Program'': Automated lifecycle emails. Identified by ''CPROG'' in name, or patterns like ''order to delivery'',
-    ''lead nurture'', ''volvo cars app'', ''first year'', ''FYP'', ''service reminder''
+    - ''Program'': Automated lifecycle emails. Identified by ''CPROG'' in name, or patterns like ''order to delivery'', ''lead
+    nurture'', ''volvo cars app'', ''first year'', ''FYP'', ''service reminder''
 
-    - ''E-newsletter'': News communications. Identified by ''CENEWS'' in name, or patterns like ''global-enewsletter'',
-    ''Enewsletter'', ''E_newsletter''
+    - ''E-newsletter'': News communications. Identified by ''CENEWS'' in name, or patterns like ''global-enewsletter'', ''Enewsletter'',
+    ''E_newsletter''
 
     - ''Campaign'': Marketing campaign emails (default for other emails). Fixed sends based on business objectives.
 
 
-    IMPORTANT: When user asks about "campaign" or "campaigns" in general (without specifying a campaign name), they are
-    referring to the CATEGORY ''Campaign'', not a specific email name. Always filter by program_or_compaign = ''Campaign''
-    unless the user provides a specific campaign name.'
+    IMPORTANT: When user asks about "campaign" or "campaigns" in general (without specifying a campaign name), they are referring
+    to the CATEGORY ''Campaign'', not a specific email name. Always filter by program_or_compaign = ''Campaign'' unless the
+    user provides a specific campaign name.'
   expr: PROGRAM_OR_COMPAIGN
   data_type: VARCHAR(12)
   sample_values:
@@ -544,8 +543,8 @@ filters:
   - central_programs
   - centrally_managed_program
   - hq_program
-  description: Program emails with central/global scope. Use when user asks about "central programs" ,"HQ programs", or
-    "centrally managed programs".
+  description: Program emails with central/global scope. Use when user asks about "central programs" ,"HQ programs", or "centrally
+    managed programs".
   expr: GEOGRAPHIC_SCOPE = 'Central' AND PROGRAM_OR_COMPAIGN = 'Program'
 - name: direct_engine
   synonyms:
@@ -555,8 +554,8 @@ filters:
   - catalyst_emails
   - direct_engine
   - direct_engine_emails
-  description: Emails briefed and created through the Catalyst direct engine platform. Use when user asks about "direct
-    engine", "Catalyst emails", "Catalyst briefed", or "DE emails".
+  description: Emails briefed and created through the Catalyst direct engine platform. Use when user asks about "direct engine",
+    "Catalyst emails", "Catalyst briefed", or "DE emails".
   expr: EMAIL_SEND_PROCESS = 'Direct Engine'
 - name: direct_engine_campaign
   synonyms:
@@ -673,8 +672,8 @@ filters:
   - ode
   - outside_direct_engine
   - sfmc_direct
-  description: Emails created outside the Catalyst platform, directly in SFMC. Use when user asks about "outside direct
-    engine", "non-Catalyst", "ODE", "SFMC direct", or "manual emails".
+  description: Emails created outside the Catalyst platform, directly in SFMC. Use when user asks about "outside direct engine",
+    "non-Catalyst", "ODE", "SFMC direct", or "manual emails".
   expr: EMAIL_SEND_PROCESS = 'Outside Direct Engine'
 - name: outside_direct_engine_campaign
   synonyms:
@@ -703,10 +702,9 @@ filters:
   - program
   - program_emails
   - programs
-  description: 'Use on campaign metadata to include only programs based on category is ''Program''. Programs: triggered
-    emails, based on behaviour (ex. first year after buying a car), automated lifecycle emails. Identified by ''CPROG''
-    in name, or patterns like ''order to delivery'', ''lead nurture'', ''volvo cars app'', ''first year'', ''FYP'', ''service
-    reminder'''
+  description: 'Use on campaign metadata to include only programs based on category is ''Program''. Programs: triggered emails,
+    based on behaviour (ex. first year after buying a car), automated lifecycle emails. Identified by ''CPROG'' in name, or
+    patterns like ''order to delivery'', ''lead nurture'', ''volvo cars app'', ''first year'', ''FYP'', ''service reminder'''
   expr: program_or_compaign = 'Program'
 - name: renew_program
   synonyms:
@@ -742,8 +740,7 @@ metrics:
   - unique_campaign_total
   description: Counts the number of distinct email campaigns or email names. Use when questions ask about 'number of campaigns',
     'how many emails', 'campaign count', 'email variety', or 'campaign diversity'. Helps measure campaign activity volume,
-    analyze campaign portfolio size, and compare campaign frequency across different time periods, markets, or campaign
-    types.
+    analyze campaign portfolio size, and compare campaign frequency across different time periods, markets, or campaign types.
   expr: COUNT(DISTINCT email_name)
   access_modifier: public_access
 primary_key:

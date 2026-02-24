@@ -145,8 +145,8 @@ dimensions:
   - negative_metric
   - reverse_logic
   - reversed_threshold
-  description: Indicates whether the benchmark threshold uses inverse logic for evaluation. TRUE for metrics where lower
-    is better (optout_rate, bounce_rate). FALSE for metrics where higher is better (open_rate, click_rate, ctor).
+  description: Indicates whether the benchmark threshold uses inverse logic for evaluation. TRUE for metrics where lower is
+    better (optout_rate, bounce_rate). FALSE for metrics where higher is better (open_rate, click_rate, ctor).
   expr: IS_INVERSE
   data_type: BOOLEAN
   cortex_search_service:
@@ -288,8 +288,8 @@ time_dimensions:
   - update_date
   - update_timestamp
   - updated_at
-  description: The timestamp when the benchmark threshold record was last updated. Used for tracking data freshness and
-    audit purposes.
+  description: The timestamp when the benchmark threshold record was last updated. Used for tracking data freshness and audit
+    purposes.
   expr: LAST_UPDATED
   data_type: TIMESTAMP_NTZ(9)
   sample_values:
@@ -331,8 +331,8 @@ facts:
   - min_threshold
   - minimum_limit
   - minimum_threshold
-  description: The minimum value threshold used for benchmarking. Lower bound of the threshold range in percentage. NULL
-    indicates no lower limit (e.g., <12% for critical open rate).
+  description: The minimum value threshold used for benchmarking. Lower bound of the threshold range in percentage. NULL indicates
+    no lower limit (e.g., <12% for critical open rate).
   expr: MIN_VALUE
   data_type: NUMBER(10,4)
   access_modifier: public_access

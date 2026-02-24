@@ -10,8 +10,8 @@ synonyms:
 - marketing_email_blocks
 - sfmc_block_metadata
 - sfmc_content_aliases
-description: The table contains records of email content blocks used in marketing communications. Each record represents
-  a specific block within an email and includes details about the block's type, position, and associated link tracking information.
+description: The table contains records of email content blocks used in marketing communications. Each record represents a
+  specific block within an email and includes details about the block's type, position, and associated link tracking information.
 base_table:
   database: DEV_MARCOM_DB
   schema: DM
