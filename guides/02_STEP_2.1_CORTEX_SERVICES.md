@@ -29,6 +29,268 @@ This step involves creating Python wrapper classes for all four Snowflake Cortex
 
 ---
 
+## 🤔 Should You Use Snowflake MCP Instead?
+
+### What is Snowflake MCP?
+
+**MCP (Model Context Protocol)** is Anthropic's open standard for connecting AI assistants to external data sources. The Snowflake MCP server allows LLMs like Claude to query Snowflake databases directly.
+
+### Architecture Comparison
+
+#### **Current DIA Architecture (Orchestrator-Based)**
+
+```
+User Query
+    ↓
+FastAPI Orchestrator
+    ↓
+┌─────────────────────────────────────┐
+│ Intent Classification               │ ← Cortex Complete
+│         ↓                           │
+│ Route to Appropriate Service:       │
+│   • Cortex Analyst (NL → SQL)       │
+│   • Cortex Complete (Text Gen)      │
+│   • Cortex Search (Vector Search)   │
+│   • Cortex ML (Forecast/Anomaly)    │
+└─────────────────────────────────────┘
+    ↓
+Response Enhancement ← Cortex Complete
+    ↓
+Formatted Response to User
+```
+
+**Characteristics:**
+- ✅ Full control over orchestration logic
+- ✅ Multi-service coordination (4 Cortex services)
+- ✅ Custom business rules and validation
+- ✅ Response enhancement and formatting
+- ✅ Logging, monitoring, caching
+- ✅ Production-grade features (auth, rate limiting)
+
+---
+
+#### **MCP Architecture (Direct LLM Connection)**
+
+```
+User Query
+    ↓
+Claude Desktop / MCP Client
+    ↓
+MCP Server (Snowflake Connector)
+    ↓
+Snowflake Database (SQL Queries Only)
+    ↓
+Raw Query Results
+    ↓
+LLM Formats Response
+    ↓
+Return to User
+```
+
+**Characteristics:**
+- ✅ Simpler setup (less code)
+- ✅ Direct LLM-to-database connection
+- ❌ Only executes SQL queries
+- ❌ No access to Cortex Analyst semantic models
+- ❌ No multi-service orchestration
+- ❌ Limited customization
+- ❌ Claude/MCP-client dependent
+
+---
+
+### Detailed Comparison for DIA Project
+
+| Aspect | **Current Orchestrator** | **Snowflake MCP** |
+|--------|--------------------------|-------------------|
+| **Cortex Analyst Support** | ✅ Full semantic model integration | ❌ Not supported (SQL only) |
+| **Multi-Service Orchestration** | ✅ Analyst + Complete + Search + ML | ❌ SQL queries only |
+| **Intent Classification** | ✅ Custom routing logic | ❌ LLM decides everything |
+| **Response Enhancement** | ✅ Post-process with Cortex Complete | ⚠️ Relies on LLM formatting |
+| **Semantic Model** | ✅ Uses your YAML for business context | ❌ No semantic model concept |
+| **Custom Business Rules** | ✅ Full control | ❌ Very limited |
+| **Logging & Monitoring** | ✅ Structlog, custom metrics | ⚠️ Basic MCP logging |
+| **Multi-LLM Support** | ✅ Any Cortex model | ⚠️ Limited to MCP clients |
+| **API Flexibility** | ✅ FastAPI with custom endpoints | ❌ Fixed MCP protocol |
+| **Production Features** | ✅ Auth, rate limiting, caching | ⚠️ Need to build separately |
+| **Integration Flexibility** | ✅ Can add any service/system | ❌ Snowflake-only |
+| **Access Methods** | ✅ REST API, Web UI, Mobile | ⚠️ MCP clients only |
+
+---
+
+### 💡 When MCP Would Be Better
+
+Use **Snowflake MCP** if your project only needs:
+- ✅ Simple SQL query execution
+- ✅ Quick prototyping with Claude Desktop
+- ✅ Read-only database access
+- ✅ No orchestration or business logic
+- ✅ Single-user or personal productivity tool
+
+---
+
+### 🏆 Why Orchestrator Architecture is Better for DIA
+
+**1. Multiple Cortex Services Required**
+```python
+# DIA orchestrator intelligently routes:
+if intent == "data_query":
+    → Cortex Analyst (semantic model + SQL generation)
+elif intent == "content_generation":
+    → Cortex Complete (text generation)
+elif intent == "search_campaigns":
+    → Cortex Search (vector similarity)
+elif intent == "forecast_metrics":
+    → Cortex ML (time series prediction)
+```
+**MCP cannot do this** - it only executes SQL queries.
+
+---
+
+**2. Semantic Model Intelligence**
+```yaml
+# Your semantic.yaml provides business context:
+tables:
+  - name: VW_SFMC_EMAIL_PERFORMANCE
+    description: "Email campaign performance metrics"
+    dimensions:
+      - name: MARKET
+        synonyms: ["country", "region", "geography"]
+      - name: CAMPAIGN_TYPE
+        values: ["promotional", "transactional", "newsletter"]
+```
+**Cortex Analyst uses this context** to generate accurate SQL.  
+**MCP has no semantic model support** - LLM must guess table/column names.
+
+---
+
+**3. Response Enhancement & Formatting**
+```python
+# Current flow with full control:
+raw_data = analyst.send_message("Show me top campaigns")
+# → [{"campaign": "SUMMER_2025", "revenue": 125000}, ...]
+
+enhanced = llm.complete(f"""
+Analyze this campaign data and provide:
+1. Top 3 performing campaigns
+2. Key success factors
+3. Actionable recommendations
+
+Data: {raw_data}
+""")
+# → Beautiful, business-friendly narrative
+```
+**With MCP:** LLM directly formats SQL results (less control, less consistent).
+
+---
+
+**4. Production Requirements**
+```python
+# DIA orchestrator includes:
+- 🔐 Authentication & authorization
+- ⏱️ Rate limiting per user
+- 💾 Response caching
+- 📊 Custom metrics & monitoring
+- 🔄 Retry logic & circuit breakers
+- 📝 Structured logging (structlog)
+- 🎯 Multiple model support
+- 🌍 Multi-tenant support
+```
+**MCP:** Basic protocol - you'd need to build all this separately.
+
+---
+
+### 🎯 Best of Both Worlds: Hybrid Approach
+
+You can **integrate MCP as an optional client** while keeping your orchestrator:
+
+```
+┌──────────────────────────────────────────────┐
+│          Client Access Methods               │
+├──────────────────────────────────────────────┤
+│  Claude Desktop (MCP)         ───┐           │
+│  Streamlit Web UI             ───┤           │
+│  Mobile App                   ───┼──→ FastAPI Orchestrator
+│  REST API Clients             ───┤   ↓
+│  Direct HTTP                  ───┘   Cortex Services
+└──────────────────────────────────────────────┘
+```
+
+**Benefits:**
+- ✅ Keep powerful orchestration logic
+- ✅ Add MCP for Claude Desktop users
+- ✅ Users choose their preferred interface
+- ✅ Maintain production features
+
+---
+
+### 📝 Verdict for DIA Project
+
+### **Stick with Orchestrator Architecture** ✅
+
+**Reasons:**
+1. ✅ **Semantic Model Intelligence** - Cortex Analyst requires it
+2. ✅ **Multi-Service Orchestration** - You need all 4 Cortex services
+3. ✅ **Custom Business Logic** - Marketing analytics has complex rules
+4. ✅ **Production Features** - Enterprise-grade reliability needed
+5. ✅ **Response Enhancement** - Business-friendly formatting required
+6. ✅ **Flexibility** - Easy to add new services and integrations
+7. ✅ **Multi-User Support** - Team collaboration features
+
+**MCP is great for:**
+- 👤 Personal productivity tools
+- 🔧 Quick SQL prototypes
+- 💻 Claude Desktop integrations
+- 📖 Simple read-only queries
+
+**Your DIA platform needs:**
+- 🏢 Enterprise orchestration
+- 🤖 Multi-service AI coordination
+- 📊 Custom analytics logic
+- 🔒 Production-grade security
+- 📈 Scalability and monitoring
+
+---
+
+### 🚀 Recommended Implementation Path
+
+#### **Phase 1 (Current): Build Orchestrator** ✅
+```
+✅ Step 1: Data Layer (Semantic Model)
+✅ Step 2: Cortex Service Wrappers
+→ Step 3: FastAPI Routes & Orchestration
+→ Step 4: Streamlit Web UI
+```
+
+#### **Phase 2: Production Deployment**
+```
+→ Authentication & authorization
+→ Monitoring & alerting
+→ Caching & performance optimization
+→ Multi-tenant support
+```
+
+#### **Phase 3 (Optional): Add MCP Integration**
+```
+→ Create MCP server wrapper for orchestrator
+→ Allow Claude Desktop access
+→ Maintain orchestrator benefits
+→ Offer multiple access methods
+```
+
+---
+
+### 💡 Key Takeaway
+
+**Your orchestrator architecture is exactly right** for an enterprise marketing intelligence platform. It provides:
+- 🎯 Intelligence (semantic models, intent classification)
+- 🔀 Orchestration (4 Cortex services working together)
+- 🎨 Enhancement (business-friendly responses)
+- 🏗️ Production-ready (auth, logging, monitoring)
+
+MCP is a great tool, but **not the right fit** for DIA's requirements. Stick with your current approach! 💪
+
+---
+
 ## 📚 CORTEX ANALYST - Comprehensive Guide
 
 ### What It Does
