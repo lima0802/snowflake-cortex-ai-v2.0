@@ -217,7 +217,20 @@ See [guides/00_TESTING_GUIDE.md](guides/00_TESTING_GUIDE.md) for complete testin
 
 ### Semantic Model Management
 
-Automated Python-based workflow for managing and deploying semantic models to Snowflake:
+**Modular workflow** (recommended):
+
+```powershell
+# Edit modular components
+code orchestrator/semantic_models/schema.yaml
+code orchestrator/semantic_models/instructions.yaml
+code orchestrator/semantic_models/verified_queries.yaml
+
+# Merge and deploy
+python scripts/merge_semantic_models.py
+python scripts/deploy_semantic_model.py
+```
+
+**Legacy monolithic workflow:**
 
 ```powershell
 # Validate semantic model
@@ -242,7 +255,10 @@ Automated workflows trigger on push to `main`:
 
 **Setup:** Add Snowflake credentials to GitHub Secrets (Settings → Secrets → Actions)
 
-See [SEMANTIC_CI_CD_QUICKSTART.md](SEMANTIC_CI_CD_QUICKSTART.md) and [guides/11_CI_CD_SETUP.md](guides/11_CI_CD_SETUP.md) for complete documentation.
+**📖 Documentation:**
+- **[Complete Semantic Model Guide](guides/SEMANTIC_MODEL_GUIDE.md)** - Comprehensive guide (modular workflow, best practices, CI/CD)
+- [Modular Semantic Models](orchestrator/semantic_models/README.md) - Quick reference
+- [CI/CD Setup](guides/11_CI_CD_SETUP.md) - GitHub Actions configuration
 
 ## �📊 Current Status
 

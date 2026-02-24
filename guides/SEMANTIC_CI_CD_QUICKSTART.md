@@ -1,5 +1,29 @@
 # 🚀 Semantic Model CI/CD - Quick Reference
 
+> **⚠️ DEPRECATED**: This file has been merged into **[SEMANTIC_MODEL_GUIDE.md](SEMANTIC_MODEL_GUIDE.md)**
+> 
+> **Please use the comprehensive guide instead:** **[📖 SEMANTIC_MODEL_GUIDE.md](SEMANTIC_MODEL_GUIDE.md)**
+> 
+> This file is kept for backward compatibility but may be removed in future versions.
+
+---
+
+## 👉 [Go to Complete Semantic Model Guide](SEMANTIC_MODEL_GUIDE.md)
+
+The complete guide includes:
+- ✅ Modular workflow (split/merge)
+- ✅ Best practices
+- ✅ CI/CD automation
+- ✅ GitHub Actions setup
+- ✅ Troubleshooting
+- ✅ Common tasks
+- ✅ Legacy monolithic workflow
+
+---
+
+<details>
+<summary>📜 Legacy Content (Click to expand)</summary>
+
 ## One-Line Commands
 
 ```powershell
@@ -132,3 +156,10 @@ Perfect for scripting and CI/CD! 🎯
 ---
 
 **Full documentation:** [guides/11_CI_CD_SETUP.md](11_CI_CD_SETUP.md)
+
+</details>
+
+---
+
+**Deprecated:** 2026-02-24  
+**Superseded by:** [SEMANTIC_MODEL_GUIDE.md](SEMANTIC_MODEL_GUIDE.md)

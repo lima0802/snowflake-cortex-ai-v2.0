@@ -84,8 +84,10 @@ python scripts/deploy_semantic_model.py --stage TEST_SEMANTIC_MODELS
 
 ## 📚 Documentation
 
+- **[📖 Complete Semantic Model Guide](../../guides/SEMANTIC_MODEL_GUIDE.md)** - Comprehensive guide with best practices
 - [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
-- [Semantic Model Guide](../../guides/02_STEP_2.2_SEMANTIC_MODEL_AUTOMATION.md)
+- [Semantic Model Automation](../../guides/02_STEP_2.2_SEMANTIC_MODEL_AUTOMATION.md)
+- [Legacy Quickstart](../../guides/SEMANTIC_CI_CD_QUICKSTART.md) - Superseded by complete guide
 - [DIA Implementation Plan](../../DIA_V2_IMPLEMENTATION_PLAN.md)
 
 ---
