@@ -16,15 +16,21 @@ Learning Resources:
 
 Author: Li Ma
 Date: February 22, 2026
+docker exec dia-orchestrator python services/cortex_analyst.py
 """
 
 import os
+import sys
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 import json
 
 from snowflake.snowpark import Session
 from dotenv import load_dotenv
+
+# Add parent directory to Python path for proper imports
+# This allows 'from utils.logging import ...' to work regardless of where script is run from
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import your logging utility (you already have this!)
 from utils.logging import get_logger
