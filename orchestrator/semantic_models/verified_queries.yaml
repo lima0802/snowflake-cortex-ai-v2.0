@@ -1,0 +1,761 @@
+verified_queries:
+- name: TOP_CAMPAIGNS_Q3_ENGAGEMENT
+  sql: "SELECT\n  m.email_name AS campaign_name,\n  m.program_or_compaign AS type,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends)\
+    \ - SUM(f.bounces) AS total_delivered,\n  ROUND(\n    SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0),\n    1\n  ) AS open_rate_pct,\n  ROUND(\n    SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0),\n    1\n  ) AS click_rate_pct,\n  ROUND(\n    SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\n \
+    \   1\n  ) AS click_to_open_rate_pct\nFROM\n  V_FACT_SFMC_PERFORMANCE_TRACKING f\n  LEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nWHERE\n  (\n    m.email_name NOT ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n\
+    \  AND f.send_date >= '2025-07-01'\n  AND f.send_date < '2025-10-01'\n  AND program_or_compaign = 'Campaign'\nGROUP BY\n\
+    \  m.email_name,\n  m.program_or_compaign\nHAVING\n  SUM(f.sends) > 100\nORDER BY\n  click_rate_pct DESC\nLIMIT\n  10"
+  question: Which campaign achieved the highest engagement in Q3?
+  verified_at: 1770917310
+  verified_by: Li Ma
+  use_as_onboarding_question: true
+- name: MARKET_COMPARISON_FR_ES_IT
+  sql: "WITH filtered AS (\n  SELECT\n    f.business_unit,\n    f.comp_key,\n    f.send_date,\n    f.unique_opens,\n    f.unique_clicks,\n\
+    \    f.sends,\n    f.bounces,\n    m.email_name\n  FROM\n    V_FACT_SFMC_PERFORMANCE_TRACKING f\n    INNER JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\n  WHERE\n    m.email_name NOT ILIKE '%sparkpost%'\n    AND f.business_unit IN ('VCFR',\
+    \ 'VCES', 'VCIT')\n    AND program_or_compaign = 'Campaign'\n),\nranked AS (\n  SELECT\n    filtered.*,\n    ROW_NUMBER()\
+    \ OVER (\n      PARTITION BY business_unit\n      ORDER BY\n        send_date DESC\n    ) AS rn\n  FROM\n    filtered\n\
+    )\nSELECT\n  c.region_name_group AS region,\n  r.business_unit AS market,\n  c.country_name AS market_name,\n  r.email_name,\n\
+    \  r.send_date AS latest_date,\n  ROUND(\n    SUM(r.unique_opens) * 100.0 / NULLIF(SUM(r.sends) - SUM(r.bounces), 0),\n\
+    \    1\n  ) AS open_rate_pct,\n  ROUND(\n    SUM(r.unique_clicks) * 100.0 / NULLIF(SUM(r.sends) - SUM(r.bounces), 0),\n\
+    \    1\n  ) AS click_rate_pct,\n  SUM(r.sends) AS total_sends,\n  SUM(r.sends) - SUM(r.bounces) AS total_delivered\nFROM\n\
+    \  ranked r\n  INNER JOIN V_DIM_COUNTRY c ON r.business_unit = c.vc_country_code\nWHERE\n  r.rn = 1\nGROUP BY\n  c.region_name_group,\n\
+    \  r.business_unit,\n  c.country_name,\n  r.email_name,\n  r.send_date\nORDER BY\n  open_rate_pct DESC;"
+  question: Compare open rates for France, Spain, and Italy for the most recent campaign
+  verified_at: 1767123484
+  verified_by: Li Ma
+  use_as_onboarding_question: true
+- name: SPAIN_OPTOUT_VS_EU_Q3
+  sql: "WITH spain_stats AS (\n  SELECT\n    c.country_name AS market_name,\n    ROUND(\n      SUM(f.unsubscribes) * 100.0\
+    \ / NULLIF(SUM(f.sends), 0),\n      2\n    ) AS unsubscribe_rate_pct,\n    SUM(f.sends) AS total_sends\n  FROM\n    V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\n    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\n    INNER JOIN V_DIM_COUNTRY c ON f.business_unit\
+    \ = c.vc_country_code\n  WHERE\n    (\n      m.email_name NOT ILIKE '%sparkpost%'\n      OR m.email_name IS NULL\n   \
+    \ )\n    AND f.business_unit = 'VCES'\n    AND f.send_date >= '2025-07-01'\n    AND f.send_date < '2025-10-01'\n  GROUP\
+    \ BY\n    c.country_name\n),\neu_stats AS (\n  SELECT\n    'EU Average' AS market,\n    ROUND(\n      SUM(f.unsubscribes)\
+    \ * 100.0 / NULLIF(SUM(f.sends), 0),\n      2\n    ) AS unsubscribe_rate_pct,\n    SUM(f.sends) AS total_sends\n  FROM\n\
+    \    V_FACT_SFMC_PERFORMANCE_TRACKING f\n    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\n    INNER\
+    \ JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n  WHERE\n    (\n      m.email_name NOT ILIKE '%sparkpost%'\n\
+    \      OR m.email_name IS NULL\n    )\n    AND c.region_name_group = 'EMEA'\n    AND f.send_date >= '2025-07-01'\n   \
+    \ AND f.send_date < '2025-10-01'\n)\nSELECT\n  *\nFROM\n  spain_stats\nUNION ALL\nSELECT\n  *\nFROM\n  eu_stats"
+  question: What is Spain's opt-out rate compared to the EU average in Q3?
+  verified_at: 1767125252
+  verified_by: Li Ma
+  use_as_onboarding_question: true
+- name: EX30_NL_VS_BE_COMPARISON
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name AS market_name,\n  ROUND(\n\
+    \    SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),\n    1\n  ) AS open_rate_pct,\n  ROUND(\n\
+    \    SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0),\n    1\n  ) AS click_rate_pct,\n  SUM(f.sends)\
+    \ AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered\nFROM\n  V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT\
+    \ JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nINNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE\n  (\n    m.email_name NOT ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n  AND f.business_unit IN ('VCNL',\
+    \ 'VCBE')\n  AND m.program_or_compaign = 'Campaign'\n  AND UPPER(TRIM(m.car_model)) = 'EX30'\nGROUP BY\n  c.region_name_group,\n\
+    \  f.business_unit,\n  c.country_name\nORDER BY\n  open_rate_pct DESC"
+  question: Compare open and click rates for EX30 campaigns in NL versus BE
+  verified_at: 1767125098
+  verified_by: Li Ma
+  use_as_onboarding_question: true
+- name: HIGH_OPTOUT_MARKETS
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name AS market_name,\n  ROUND(\n\
+    \    SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0),\n    2\n  ) AS unsubscribe_rate_pct,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.unsubscribes) AS total_unsubscribes,\n  CASE\n    WHEN SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0)\
+    \ > 1.0 THEN 'Critical'\n    WHEN SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0) > 0.5 THEN 'Warning'\n    ELSE\
+    \ 'OK'\n  END AS status\nFROM\n  V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nINNER JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\nWHERE\n  (\n    m.email_name NOT ILIKE\
+    \ '%sparkpost%'\n    OR m.email_name IS NULL\n  )\nGROUP BY\n  c.region_name_group,\n  f.business_unit,\n  c.country_name\n\
+    HAVING\n  SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0) > 0.5\nORDER BY\n  unsubscribe_rate_pct DESC"
+  question: Summarize all markets where the opt-out rate exceeds 0.5%
+  verified_at: 1767125451
+  verified_by: Li Ma
+  use_as_onboarding_question: true
+- name: PERFORMANCE_SUMMARY_APAC
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND c.region_name_group = 'APEC'\nGROUP BY c.region_name_group,\
+    \ f.business_unit, c.country_name\nORDER BY total_sends DESC"
+  question: Show me the email performance summary for Asia Pacific region
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PERFORMANCE_SUMMARY_LATAM
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND c.region_name_group = 'LATAM'\nGROUP BY c.region_name_group,\
+    \ f.business_unit, c.country_name\nORDER BY total_sends DESC"
+  question: Show me the email performance for Latin America
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PERFORMANCE_SUMMARY_USCAN
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes)\
+    \ * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND c.region_name_group = 'US/CAN'\nGROUP BY c.region_name_group,\
+    \ f.business_unit, c.country_name\nORDER BY total_sends DESC"
+  question: Show me the email performance for North America
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: REGIONAL_PERFORMANCE_COMPARISON
+  sql: "SELECT\n  c.region_name_group AS region,\n  COUNT(DISTINCT f.business_unit) AS num_markets,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes)\
+    \ * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY c.region_name_group\nORDER BY total_sends DESC"
+  question: How do the different regions compare in email performance?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: MONTHLY_PERFORMANCE_TREND_GLOBAL
+  sql: "SELECT \n  DATE_TRUNC('MONTH', f.send_date) AS month,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces)\
+    \ AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends),\
+    \ 0), 1) AS bounce_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -12, CURRENT_DATE))\n\
+    \  AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)\nGROUP BY DATE_TRUNC('MONTH', f.send_date)\nORDER BY month DESC"
+  question: What is the monthly performance trend for all email campaigns?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: QUARTERLY_PERFORMANCE_TREND
+  sql: "SELECT \n  DATE_TRUNC('QUARTER', f.send_date) AS quarter,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces)\
+    \ AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends),\
+    \ 0), 1) AS bounce_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -8,\
+    \ CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)\nGROUP BY DATE_TRUNC('QUARTER', f.send_date)\n\
+    ORDER BY quarter DESC"
+  question: What is the quarterly performance trend?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: WEEK_OVER_WEEK_PERFORMANCE
+  sql: "SELECT \n  CASE \n    WHEN f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -1, CURRENT_DATE)) \n         AND f.send_date\
+    \ < DATE_TRUNC('WEEK', CURRENT_DATE) \n    THEN 'Last Week'\n    ELSE 'Previous Week'\n  END AS period,\n  SUM(f.sends)\
+    \ AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK', -2, CURRENT_DATE))\n\
+    \  AND f.send_date < DATE_TRUNC('WEEK', CURRENT_DATE)\nGROUP BY CASE \n  WHEN f.send_date >= DATE_TRUNC('WEEK', DATEADD('WEEK',\
+    \ -1, CURRENT_DATE)) \n       AND f.send_date < DATE_TRUNC('WEEK', CURRENT_DATE) \n  THEN 'Last Week'\n  ELSE 'Previous\
+    \ Week'\nEND\nORDER BY period DESC"
+  question: How did last week compare to the week before?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: MONTH_OVER_MONTH_COMPARISON
+  sql: "SELECT \n  CASE \n    WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'\n    ELSE 'Last\
+    \ Month'\n  END AS period,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('MONTH',\
+    \ DATEADD('MONTH', -1, CURRENT_DATE))\nGROUP BY CASE \n  WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This\
+    \ Month (MTD)'\n  ELSE 'Last Month'\nEND\nORDER BY period DESC"
+  question: How does this month compare to last month?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: SEND_VOLUME_BY_DAY_OF_WEEK
+  sql: "SELECT \n  DAYNAME(f.send_date) AS day_of_week,\n  DAYOFWEEKISO(f.send_date) AS day_num,\n  COUNT(DISTINCT f.send_date)\
+    \ AS num_send_days,\n  SUM(f.sends) AS total_sends,\n  ROUND(AVG(f.sends), 0) AS avg_sends_per_day,\n  ROUND(SUM(f.unique_opens)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date\
+    \ >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))\nGROUP BY DAYNAME(f.send_date), DAYOFWEEKISO(f.send_date)\n\
+    ORDER BY day_num"
+  question: Which days of the week do we send the most emails?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: TOP_CAMPAIGNS_LAST_QUARTER_ENGAGEMENT
+  sql: "SELECT \n  m.email_name AS campaign_name, \n  m.car_model, \n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces)\
+    \ AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\
+    \ \n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct, \n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct \nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f \n\
+    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key \nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name\
+    \ IS NULL)\n  AND f.send_date >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('QUARTER',\
+    \ CURRENT_DATE)\nGROUP BY m.email_name, m.car_model \nHAVING SUM(f.sends) > 100 \nORDER BY click_to_open_rate_pct DESC\
+    \ NULLS LAST \nLIMIT 10"
+  question: Which campaign achieved the highest engagement in last quarter?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: TOP_5_CAMPAIGNS_LAST_MONTH
+  sql: "SELECT \n  m.email_name AS campaign_name, \n  m.car_model, \n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces)\
+    \ AS total_delivered,\n  SUM(f.unique_clicks) AS total_unique_clicks, \n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct, \n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct \nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f \nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key \nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('MONTH',\
+    \ DATEADD('MONTH', -1, CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('MONTH', CURRENT_DATE)\nGROUP BY m.email_name, m.car_model\
+    \ \nHAVING SUM(f.sends) > 50 \nORDER BY click_rate_pct DESC NULLS LAST \nLIMIT 5"
+  question: List the top five campaigns by conversion rate in last month
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: TOP_PERFORMING_CAMPAIGNS_OVERALL
+  sql: "SELECT \n  m.email_name AS campaign_name,\n  COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,\n \
+    \ m.program_or_compaign AS campaign_type,\n  COUNT(DISTINCT f.business_unit) AS num_markets,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name\
+    \ IS NULL)\nGROUP BY m.email_name, m.car_model, m.program_or_compaign\nHAVING SUM(f.sends) > 500\nORDER BY click_to_open_rate_pct\
+    \ DESC NULLS LAST\nLIMIT 20"
+  question: What are the top performing campaigns by engagement?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: RECENT_CAMPAIGN_PERFORMANCE
+  sql: "SELECT \n  m.email_name AS campaign_name,\n  COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,\n \
+    \ MIN(f.send_date) AS first_send_date,\n  MAX(f.send_date) AS last_send_date,\n  COUNT(DISTINCT f.business_unit) AS num_markets,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATEADD('DAY',\
+    \ -30, CURRENT_DATE)\nGROUP BY m.email_name, m.car_model\nORDER BY first_send_date DESC"
+  question: What campaigns were sent in the last 30 days and how did they perform?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BOTTOM_PERFORMING_MARKETS
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY\
+    \ c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP\
+    \ BY c.region_name_group, f.business_unit, c.country_name\nHAVING SUM(f.sends) > 1000\nORDER BY click_to_open_rate_pct\
+    \ ASC NULLS LAST\nLIMIT 10"
+  question: Which markets have the lowest email engagement?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BOUNCE_RATE_BY_MARKET
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.bounces) AS total_bounces,\n  ROUND(SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0), 1) AS bounce_rate_pct,\n\
+    \  CASE\n    WHEN SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0) > 5 THEN 'Critical - List Cleanup Needed'\n    WHEN\
+    \ SUM(f.bounces) * 100.0 / NULLIF(SUM(f.sends), 0) > 2 THEN 'Warning - Monitor'\n    ELSE 'Healthy'\n  END AS status\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY\
+    \ c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP\
+    \ BY c.region_name_group, f.business_unit, c.country_name\nHAVING SUM(f.sends) > 500\nORDER BY bounce_rate_pct DESC"
+  question: Which markets have the highest bounce rates?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: SPAIN_OPTOUT_VS_EU_LAST_QUARTER
+  sql: "SELECT \n  ROUND(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.unsubscribes END) * 100.0 / \n        NULLIF(SUM(CASE\
+    \ WHEN f.business_unit = 'VCES' THEN f.sends END), 0), 2) AS spain_unsubscribe_rate_pct,\n  ROUND(SUM(f.unsubscribes)\
+    \ * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS eu_avg_unsubscribe_rate_pct,\n  ROUND(SUM(CASE WHEN f.business_unit = 'VCES'\
+    \ THEN f.unsubscribes END) * 100.0 / \n        NULLIF(SUM(CASE WHEN f.business_unit = 'VCES' THEN f.sends END), 0), 2)\
+    \ - \n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS difference_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND c.region_name_group = 'EMEA'\n  AND f.send_date\
+    \ >= DATE_TRUNC('QUARTER', DATEADD('QUARTER', -1, CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('QUARTER', CURRENT_DATE)"
+  question: What is Spain's opt-out rate compared to the EU average in last quarter?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: CLICK_RATE_VCUK_MONTHLY
+  sql: "SELECT\n  DATE_TRUNC('MONTH', f.send_date) AS month,\n  SUM(f.unique_clicks) AS total_unique_clicks,\n  SUM(f.sends)\
+    \ AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.business_unit\
+    \ = 'VCUK'\n  AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('MONTH',\
+    \ CURRENT_DATE)\nGROUP BY DATE_TRUNC('MONTH', f.send_date)\nORDER BY month DESC"
+  question: What is the monthly click rate (clicks divided by sends) for business unit 'VCUK' for the last 6 months?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PROGRAM_VS_CAMPAIGN_PERFORMANCE
+  sql: "SELECT \n  COALESCE(m.program_or_compaign, 'Unknown') AS email_type,\n  COUNT(DISTINCT m.email_name) AS num_emails,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.program_or_compaign\nORDER BY total_sends DESC"
+  question: How do Programs compare to Campaigns in performance?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: FIRST_YEAR_PROGRAM_PERFORMANCE
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND m.program_or_compaign = 'Program'\n  AND m.program_names\
+    \ ILIKE '%first-year-program%'\nGROUP BY c.region_name_group, f.business_unit, c.country_name\nHAVING SUM(f.sends) > 100\n\
+    ORDER BY click_to_open_rate_pct DESC"
+  question: How is the First Year Program performing?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: ORDER_TO_DELIVERY_PROGRAM_PERFORMANCE
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND m.program_or_compaign = 'Program'\n  AND m.program_names\
+    \ ILIKE '%order-to-delivery%'\nGROUP BY c.region_name_group, f.business_unit, c.country_name\nHAVING SUM(f.sends) > 100\n\
+    ORDER BY click_to_open_rate_pct DESC"
+  question: How is the Order to Delivery program performing?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: LEAD_NURTURE_PROGRAM_PERFORMANCE
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  SUM(f.sends) AS total_sends,\n\
+    \  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND m.program_or_compaign = 'Program'\n  AND (m.program_names\
+    \ ILIKE '%lead-nurture%' OR m.program_names ILIKE '%LNP%')\nGROUP BY c.region_name_group, f.business_unit, c.country_name\n\
+    HAVING SUM(f.sends) > 100\nORDER BY click_to_open_rate_pct DESC"
+  question: How is the Lead Nurture program performing?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: ENEWSLETTER_PERFORMANCE_BY_MARKET
+  sql: "SELECT\n  c.region_name_group AS region,\n  f.business_unit AS market,\n  c.country_name,\n  COUNT(DISTINCT m.email_name)\
+    \ AS num_newsletters,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY\
+    \ c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND\
+    \ m.program_or_compaign = 'E-newsletter'\nGROUP BY c.region_name_group, f.business_unit, c.country_name\nHAVING SUM(f.sends)\
+    \ > 100\nORDER BY total_sends DESC"
+  question: How are e-newsletters performing by market?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: DIRECT_ENGINE_VS_ODE_PERFORMANCE
+  sql: "SELECT \n  COALESCE(m.email_send_process, 'Not Specified') AS send_process,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.email_send_process\nORDER BY total_sends DESC"
+  question: How does Direct Engine compare to Outside Direct Engine emails?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PERFORMANCE_BY_EMAIL_SOURCE
+  sql: "SELECT \n  COALESCE(m.email_source, 'Not Specified') AS source,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.email_source\nORDER BY\
+    \ total_sends DESC"
+  question: How does Catalyst compare to SFMC as an email source?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PERFORMANCE_BY_GEOGRAPHIC_SCOPE
+  sql: "SELECT \n  COALESCE(m.geographic_scope, 'Not Specified') AS scope,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS unsubscribe_rate_pct\n\
+    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.geographic_scope\nORDER BY total_sends DESC"
+  question: How do central campaigns compare to local campaigns?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: CAR_MODEL_PERFORMANCE_COMPARISON
+  sql: "SELECT \n  COALESCE(UPPER(TRIM(m.car_model)), 'Not Specified') AS car_model,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY COALESCE(UPPER(TRIM(m.car_model)),\
+    \ 'Not Specified')\nHAVING SUM(f.sends) > 100\nORDER BY total_sends DESC"
+  question: How do different car models perform in email campaigns?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: PERFORMANCE_BY_LANGUAGE
+  sql: "SELECT \n  COALESCE(m.email_language, 'Not Specified') AS language,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.email_language\nHAVING\
+    \ SUM(f.sends) > 100\nORDER BY total_sends DESC"
+  question: How does email performance vary by language?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: D2C_VS_TRADITIONAL_MARKET_PERFORMANCE
+  sql: "SELECT \n  CASE \n    WHEN f.business_unit = 'VCUK' THEN 'D2C (UK)'\n    ELSE 'Traditional Markets'\n  END AS market_type,\n\
+    \  COUNT(DISTINCT f.business_unit) AS num_markets,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS\
+    \ total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n\
+    \  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS click_to_open_rate_pct,\n  ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends),\
+    \ 0), 2) AS unsubscribe_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY CASE \n    WHEN f.business_unit\
+    \ = 'VCUK' THEN 'D2C (UK)'\n    ELSE 'Traditional Markets'\n  END\nORDER BY total_sends DESC"
+  question: How does UK (D2C market) compare to traditional markets?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: AB_TEST_CAMPAIGN_PERFORMANCE
+  sql: "SELECT \n  CASE WHEN m.ab_testing IS NOT NULL THEN 'AB Test' ELSE 'Non-AB Test' END AS test_type,\n  COUNT(DISTINCT\
+    \ m.email_name) AS num_campaigns,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n\
+    \  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY CASE WHEN m.ab_testing\
+    \ IS NOT NULL THEN 'AB Test' ELSE 'Non-AB Test' END\nORDER BY total_sends DESC"
+  question: How do AB test campaigns perform?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: EDM_SEQUENCE_PERFORMANCE
+  sql: "SELECT \n  COALESCE(m.email_send_number, 'Not Specified') AS edm_number,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.email_send_number\nHAVING\
+    \ SUM(f.sends) > 100\nORDER BY edm_number"
+  question: How do different EDM sends (EDM1, EDM2, etc.) perform?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: COMPLIANT_VS_NON_COMPLIANT_PERFORMANCE
+  sql: "SELECT \n  COALESCE(m.compliant, 'Not Specified') AS compliance_status,\n  COUNT(DISTINCT m.email_name) AS num_campaigns,\n\
+    \  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n  ROUND(SUM(f.unique_opens) * 100.0\
+    \ / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\
+    \ 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\nGROUP BY m.compliant\nORDER BY total_sends\
+    \ DESC"
+  question: How do compliant emails compare to non-compliant?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: WEEKEND_VS_WEEKDAY_PERFORMANCE
+  sql: "SELECT \n  CASE WHEN DAYOFWEEKISO(f.send_date) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END AS day_type,\n  COUNT(DISTINCT\
+    \ f.send_date) AS num_send_days,\n  SUM(f.sends) AS total_sends,\n  SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n\
+    \  ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n  ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n  ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1) AS click_to_open_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date >= DATE_TRUNC('MONTH',\
+    \ DATEADD('MONTH', -6, CURRENT_DATE))\nGROUP BY CASE WHEN DAYOFWEEKISO(f.send_date) IN (6, 7) THEN 'Weekend' ELSE 'Weekday'\
+    \ END\nORDER BY total_sends DESC"
+  question: How do weekend sends compare to weekday sends?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: AVAILABLE_COUNTRIES_REGIONS
+  sql: "SELECT\n  vc_country_code,\n  country_name,\n  country_code,\n  sub_region,\n  region_name_group,\n  market_cd\nFROM\
+    \ V_DIM_COUNTRY\nORDER BY region_name_group, sub_region, country_name"
+  question: What countries and regions are available in our email marketing database?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: AVAILABLE_CAMPAIGNS_METADATA
+  sql: "SELECT\n  comp_key,\n  send_id,\n  business_unit,\n  email_name,\n  email_subject_line,\n  car_model,\n  program_or_compaign,\n\
+    \  program_names,\n  email_source,\n  email_send_process,\n  geographic_scope,\n  email_language,\n  email_version,\n\
+    \  send_date\nFROM V_DIM_SFMC_METADATA_JOB\nWHERE email_name NOT ILIKE '%sparkpost%'\nORDER BY send_date DESC\nLIMIT 1000"
+  question: What email campaigns and their metadata are available in our system?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_THRESHOLDS_CTOR
+  sql: "SELECT \n    STATUS,\n    STATUS_LABEL,\n    CASE \n        WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'\n\
+    \        WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'\n        ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'\n \
+    \   END AS threshold_range,\n    DESCRIPTION,\n    ACTION_REQUIRED\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE METRIC_NAME\
+    \ = 'ctor'\n  AND EMAIL_TYPE = 'all'\n  AND STATUS != 'info'\nORDER BY \n    CASE STATUS \n        WHEN 'critical' THEN\
+    \ 1 \n        WHEN 'warning' THEN 2 \n        WHEN 'good' THEN 3 \n        WHEN 'strong' THEN 4 \n        WHEN 'excellent'\
+    \ THEN 5 \n    END"
+  question: What are the CTOR benchmarks?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_THRESHOLDS_OPEN_RATE
+  sql: "SELECT \n    STATUS,\n    STATUS_LABEL,\n    CASE \n        WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'\n\
+    \        WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'\n        ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'\n \
+    \   END AS threshold_range,\n    DESCRIPTION,\n    ACTION_REQUIRED\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE METRIC_NAME\
+    \ = 'open_rate'\n  AND EMAIL_TYPE = 'all'\n  AND STATUS != 'info'\nORDER BY \n    CASE STATUS \n        WHEN 'critical'\
+    \ THEN 1 \n        WHEN 'warning' THEN 2 \n        WHEN 'good' THEN 3 \n        WHEN 'strong' THEN 4 \n        WHEN 'excellent'\
+    \ THEN 5 \n    END"
+  question: What is a good open rate?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_THRESHOLDS_CLICK_RATE
+  sql: "SELECT \n    STATUS,\n    STATUS_LABEL,\n    CASE \n        WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'\n\
+    \        WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'\n        ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'\n \
+    \   END AS threshold_range,\n    DESCRIPTION,\n    ACTION_REQUIRED\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE METRIC_NAME\
+    \ = 'click_rate'\n  AND EMAIL_TYPE = 'all'\n  AND STATUS != 'info'\nORDER BY \n    CASE STATUS \n        WHEN 'critical'\
+    \ THEN 1 \n        WHEN 'warning' THEN 2 \n        WHEN 'good' THEN 3 \n        WHEN 'strong' THEN 4 \n        WHEN 'excellent'\
+    \ THEN 5 \n    END"
+  question: What is a good click rate according to industry benchmark?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_THRESHOLDS_OPTOUT_RATE
+  sql: "SELECT \n    STATUS,\n    STATUS_LABEL,\n    CASE \n        WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'\n\
+    \        WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'\n        ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'\n \
+    \   END AS threshold_range,\n    DESCRIPTION,\n    ACTION_REQUIRED\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE METRIC_NAME\
+    \ = 'optout_rate'\n  AND EMAIL_TYPE = 'all'\n  AND STATUS != 'info'\nORDER BY \n    CASE STATUS \n        WHEN 'excellent'\
+    \ THEN 1 \n        WHEN 'strong' THEN 2 \n        WHEN 'good' THEN 3 \n        WHEN 'warning' THEN 4 \n        WHEN 'critical'\
+    \ THEN 5 \n    END"
+  question: What is a healthy opt-out rate benchmark?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_THRESHOLDS_BOUNCE_RATE
+  sql: "SELECT \n    STATUS,\n    STATUS_LABEL,\n    CASE \n        WHEN MIN_VALUE IS NULL THEN '<' || MAX_VALUE || '%'\n\
+    \        WHEN MAX_VALUE IS NULL THEN '>' || MIN_VALUE || '%'\n        ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%'\n \
+    \   END AS threshold_range,\n    DESCRIPTION,\n    ACTION_REQUIRED\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE METRIC_NAME\
+    \ = 'bounce_rate'\n  AND EMAIL_TYPE = 'all'\n  AND STATUS != 'info'\nORDER BY \n    CASE STATUS \n        WHEN 'excellent'\
+    \ THEN 1 \n        WHEN 'strong' THEN 2 \n        WHEN 'good' THEN 3 \n        WHEN 'warning' THEN 4 \n        WHEN 'critical'\
+    \ THEN 5 \n    END"
+  question: What bounce rate is considered acceptable in the industry?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: BENCHMARK_ALL_METRICS_SUMMARY
+  sql: "SELECT \n    METRIC_NAME,\n    MAX(CASE WHEN STATUS = 'critical' THEN \n        CASE WHEN IS_INVERSE THEN '>' || MIN_VALUE\
+    \ || '%' ELSE '<' || MAX_VALUE || '%' END \n    END) AS critical_threshold,\n    MAX(CASE WHEN STATUS = 'warning' THEN\
+    \ MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS warning_threshold,\n    MAX(CASE WHEN STATUS = 'good' THEN MIN_VALUE\
+    \ || '% - ' || MAX_VALUE || '%' END) AS good_threshold,\n    MAX(CASE WHEN STATUS = 'strong' THEN \n        CASE WHEN\
+    \ IS_INVERSE THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' ELSE MIN_VALUE || '% - ' || MAX_VALUE || '%' END \n    END)\
+    \ AS strong_threshold,\n    MAX(CASE WHEN STATUS = 'excellent' THEN \n        CASE WHEN IS_INVERSE THEN '<' || MAX_VALUE\
+    \ || '%' ELSE '>' || MIN_VALUE || '%' END \n    END) AS excellent_threshold\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE\
+    \ EMAIL_TYPE = 'all' \n  AND STATUS != 'info'\nGROUP BY METRIC_NAME\nORDER BY METRIC_NAME"
+  question: Show me all the industry benchmarks
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: EMAIL_TYPE_EXPECTED_BENCHMARKS
+  sql: "SELECT \n    METRIC_NAME,\n    MIN_VALUE || '% - ' || MAX_VALUE || '%' AS expected_range,\n    DESCRIPTION\nFROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\n\
+    WHERE EMAIL_TYPE = 'program'\n  AND STATUS = 'good'\nORDER BY \n    CASE METRIC_NAME \n        WHEN 'open_rate' THEN 1\
+    \ \n        WHEN 'click_rate' THEN 2 \n        WHEN 'ctor' THEN 3 \n    END"
+  question: What performance should I expect from program emails?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: EMAIL_TYPE_BENCHMARKS_ALL
+  sql: "SELECT \n    EMAIL_TYPE,\n    MAX(CASE WHEN METRIC_NAME = 'open_rate' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%'\
+    \ END) AS open_rate_range,\n    MAX(CASE WHEN METRIC_NAME = 'click_rate' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%'\
+    \ END) AS ctr_range,\n    MAX(CASE WHEN METRIC_NAME = 'ctor' THEN MIN_VALUE || '% - ' || MAX_VALUE || '%' END) AS ctor_range\n\
+    FROM CORTEX_SFMC_BENCHMARK_THRESHOLDS\nWHERE STATUS = 'good' \n  AND EMAIL_TYPE != 'all'\nGROUP BY EMAIL_TYPE\nORDER BY\
+    \ EMAIL_TYPE"
+  question: What are the expected performance ranges for different email types?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: MARKET_PERFORMANCE_VS_INDUSTRY_BENCHMARK
+  sql: "WITH market_metrics AS (\n    SELECT\n        c.region_name_group AS region,\n        f.business_unit AS market,\n\
+    \        c.country_name,\n        SUM(f.sends) AS total_sends,\n        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1) AS ctor_pct\n    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\n    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\n    LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n    WHERE (m.email_name NOT ILIKE\
+    \ '%sparkpost%' OR m.email_name IS NULL)\n    GROUP BY c.region_name_group, f.business_unit, c.country_name\n    HAVING\
+    \ SUM(f.sends) > 1000\n)\nSELECT\n    mm.region,\n    mm.market,\n    mm.country_name,\n    mm.total_sends,\n    mm.ctor_pct,\n\
+    \    b.STATUS AS benchmark_status,\n    b.STATUS_LABEL,\n    b.ACTION_REQUIRED\nFROM market_metrics mm\nINNER JOIN CORTEX_SFMC_BENCHMARK_THRESHOLDS\
+    \ b\n    ON b.METRIC_NAME = 'ctor'\n    AND b.EMAIL_TYPE = 'all'\n    AND b.STATUS IN ('critical', 'warning')\n    AND\
+    \ (b.MIN_VALUE IS NULL OR mm.ctor_pct >= b.MIN_VALUE)\n    AND (b.MAX_VALUE IS NULL OR mm.ctor_pct < b.MAX_VALUE)\nORDER\
+    \ BY mm.ctor_pct ASC"
+  question: Which markets are underperforming vs industry benchmark?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: MARKET_PERFORMANCE_WITH_BENCHMARK_STATUS
+  sql: "WITH market_metrics AS (\n    SELECT\n        c.region_name_group AS region,\n        f.business_unit AS market,\n\
+    \        c.country_name,\n        SUM(f.sends) AS total_sends,\n        ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1) AS ctor_pct\n    FROM V_FACT_SFMC_PERFORMANCE_TRACKING f\n    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key\
+    \ = m.comp_key\n    LEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n    WHERE (m.email_name NOT ILIKE\
+    \ '%sparkpost%' OR m.email_name IS NULL)\n    GROUP BY c.region_name_group, f.business_unit, c.country_name\n    HAVING\
+    \ SUM(f.sends) > 1000\n)\nSELECT\n    mm.region,\n    mm.market,\n    mm.country_name,\n    mm.total_sends,\n    mm.ctor_pct,\n\
+    \    b.STATUS AS benchmark_status,\n    b.STATUS_LABEL\nFROM market_metrics mm\nLEFT JOIN CORTEX_SFMC_BENCHMARK_THRESHOLDS\
+    \ b\n    ON b.METRIC_NAME = 'ctor'\n    AND b.EMAIL_TYPE = 'all'\n    AND b.STATUS != 'info'\n    AND (b.MIN_VALUE IS\
+    \ NULL OR mm.ctor_pct >= b.MIN_VALUE)\n    AND (b.MAX_VALUE IS NULL OR mm.ctor_pct < b.MAX_VALUE)\nORDER BY mm.ctor_pct\
+    \ DESC"
+  question: Is our CTOR good compared to industry benchmark?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: REGIONAL_COMPARISON_NO_BENCHMARK
+  sql: "SELECT\n    c.region_name_group AS region,\n    f.business_unit AS market,\n    c.country_name,\n    SUM(f.sends)\
+    \ AS total_sends,\n    SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n    ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends)\
+    \ - SUM(f.bounces), 0), 1) AS open_rate_pct,\n    ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces),\
+    \ 0), 1) AS click_rate_pct,\n    ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct,\n\
+    \    ROUND(SUM(f.unsubscribes) * 100.0 / NULLIF(SUM(f.sends), 0), 2) AS optout_rate_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n\
+    WHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.business_unit IN ('VCUK', 'VCDE')\nGROUP\
+    \ BY c.region_name_group, f.business_unit, c.country_name\nORDER BY ctor_pct DESC"
+  question: Compare UK vs Germany email performance
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: REGION_COMPARISON_EMEA_VS_APAC
+  sql: "SELECT\n    c.region_name_group AS region,\n    COUNT(DISTINCT f.business_unit) AS num_markets,\n    SUM(f.sends)\
+    \ AS total_sends,\n    ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n\
+    \    ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n    ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nLEFT JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\nWHERE (m.email_name\
+    \ NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND c.region_name_group IN ('EMEA', 'APEC')\nGROUP BY c.region_name_group\n\
+    ORDER BY ctor_pct DESC"
+  question: How does EMEA compare to APAC in email performance?
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: HISTORICAL_COMPARISON_MOM
+  sql: "SELECT \n    CASE \n        WHEN f.send_date >= DATE_TRUNC('MONTH', CURRENT_DATE) THEN 'This Month (MTD)'\n      \
+    \  ELSE 'Last Month'\n    END AS period,\n    SUM(f.sends) AS total_sends,\n    SUM(f.sends) - SUM(f.bounces) AS total_delivered,\n\
+    \    ROUND(SUM(f.unique_opens) * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS open_rate_pct,\n    ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.sends) - SUM(f.bounces), 0), 1) AS click_rate_pct,\n    ROUND(SUM(f.unique_clicks) * 100.0 /\
+    \ NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB\
+    \ m ON f.comp_key = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name IS NULL)\n  AND f.send_date\
+    \ >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE))\nGROUP BY CASE \n    WHEN f.send_date >= DATE_TRUNC('MONTH',\
+    \ CURRENT_DATE) THEN 'This Month (MTD)'\n    ELSE 'Last Month'\nEND\nORDER BY period DESC"
+  question: Compare this month vs last month performance
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: HISTORICAL_TREND_6_MONTHS
+  sql: "SELECT \n    DATE_TRUNC('MONTH', f.send_date) AS month,\n    SUM(f.sends) AS total_sends,\n    ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) AS ctor_pct,\n    LAG(ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1)) \n        OVER (ORDER BY DATE_TRUNC('MONTH', f.send_date)) AS prev_month_ctor,\n    ROUND(SUM(f.unique_clicks)\
+    \ * 100.0 / NULLIF(SUM(f.unique_opens), 0), 1) - \n        LAG(ROUND(SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens),\
+    \ 0), 1)) \n        OVER (ORDER BY DATE_TRUNC('MONTH', f.send_date)) AS change_pct\nFROM V_FACT_SFMC_PERFORMANCE_TRACKING\
+    \ f\nLEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\nWHERE (m.email_name NOT ILIKE '%sparkpost%' OR m.email_name\
+    \ IS NULL)\n  AND f.send_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -6, CURRENT_DATE))\n  AND f.send_date < DATE_TRUNC('MONTH',\
+    \ CURRENT_DATE)\nGROUP BY DATE_TRUNC('MONTH', f.send_date)\nORDER BY month DESC"
+  question: Show me the CTOR trend over the last 6 months
+  verified_at: 1735500000
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: INTERNAL_AVERAGE_COMPARISON
+  sql: "WITH market_metrics AS (\n  SELECT\n    f.business_unit AS market,\n    c.country_name,\n    SUM(f.sends) AS total_sends,\n\
+    \    ROUND(\n      SUM(f.unique_clicks) * 100.0 / NULLIF(SUM(f.unique_opens), 0),\n      1\n    ) AS ctor_pct\n  FROM\n\
+    \    V_FACT_SFMC_PERFORMANCE_TRACKING f\n    LEFT JOIN V_DIM_SFMC_METADATA_JOB m ON f.comp_key = m.comp_key\n    LEFT\
+    \ JOIN V_DIM_COUNTRY c ON f.business_unit = c.vc_country_code\n  WHERE\n    (\n      m.email_name NOT ILIKE '%sparkpost%'\n\
+    \      OR m.email_name IS NULL\n    )\n  GROUP BY\n    f.business_unit,\n    c.country_name\n  HAVING\n    SUM(f.sends)\
+    \ > 1000\n),\noverall_avg AS (\n  SELECT\n    ROUND(AVG(ctor_pct), 1) AS avg_ctor\n  FROM\n    market_metrics\n)\nSELECT\n\
+    \  mm.market,\n  mm.country_name,\n  mm.total_sends,\n  mm.ctor_pct,\n  oa.avg_ctor AS internal_average,\n  mm.ctor_pct\
+    \ - oa.avg_ctor AS vs_average,\n  CASE\n    WHEN mm.ctor_pct < oa.avg_ctor THEN 'Below Average'\n    ELSE 'Above Average'\n\
+    \  END AS status\nFROM\n  market_metrics mm\n  CROSS JOIN overall_avg oa\nWHERE\n  mm.ctor_pct < oa.avg_ctor\nORDER BY\n\
+    \  mm.ctor_pct ASC"
+  question: Which markets are below our average CTOR?
+  verified_at: 1767033999
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me unique block clicks by Link Tracking Alias for all eNewsletter?"'
+  sql: "SELECT\n  a.linktrackingalias AS link_tracking_alias,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\n\
+    FROM\n  v_fact_sfmc_performance_block AS b\nLEFT OUTER JOIN v_dim_sfmc_alias AS a ON b.alias = a.alias\nLEFT OUTER JOIN\
+    \ v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR\
+    \ m.email_name IS NULL\n  )\n  AND NOT a.linktrackingalias IS NULL\n  AND program_or_compaign = 'E-newsletter'\nGROUP\
+    \ BY\n  a.linktrackingalias\nORDER BY\n  total_unique_block_clicks DESC"
+  question: Show me unique block clicks by Link Tracking Alias for all eNewsletter?
+  verified_at: 1769444434
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me unique block clicks by Link Tracking Alias all EX3 CROSS COUNTRY and XC 60 campaigns "'
+  sql: "SELECT\n  m.car_model_format,\n  a.linktrackingalias AS link_tracking_alias,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\n\
+    FROM\n  v_fact_sfmc_performance_block AS b\nLEFT OUTER JOIN v_dim_sfmc_alias AS a ON b.alias = a.alias\nLEFT OUTER JOIN\
+    \ v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR\
+    \ m.email_name IS NULL\n  )\n  AND NOT a.linktrackingalias IS NULL\n  AND m.program_or_compaign = 'Campaign'\n  AND UPPER(TRIM(m.car_model_format))\
+    \ IN ('EX30 CC','XC60 MY26 Refresh')\nGROUP BY\n  m.car_model_format,\n  a.linktrackingalias\nORDER BY\n  total_unique_block_clicks\
+    \ DESC NULLS LAST"
+  question: 'Show me unique block clicks by Link Tracking Alias all EX3 CROSS COUNTRY and XC 60 campaigns '
+  verified_at: 1769444676
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me Link Tracking Alias hierarchy: Market → Email Name → LTA with unique block clicks"'
+  sql: "SELECT\n  c.country_name AS market,\n  m.email_name_cleansed,\n  a.linktrackingalias AS link_tracking_alias,\n  SUM(b.unique_block_clicks)\
+    \ AS total_unique_block_clicks\nFROM\n  v_fact_sfmc_performance_block AS b\n  LEFT JOIN v_dim_sfmc_alias AS a ON b.alias\
+    \ = a.alias\n  LEFT JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\n  LEFT JOIN v_dim_country AS c ON b.business_unit\
+    \ = c.vc_country_code\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n  AND NOT\
+    \ a.linktrackingalias IS NULL\nGROUP BY\n  c.country_name,\n  m.email_name_cleansed,\n  a.linktrackingalias\nORDER BY\n\
+    \  total_unique_block_clicks DESC"
+  question: Show me Link Tracking Alias by Market , Email Name and LTA with unique block clicks
+  verified_at: 1769445386
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me unique block clicks by country"'
+  sql: "SELECT\n  c.country_name AS country,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\nFROM\n  v_fact_sfmc_performance_block\
+    \ AS b\n  LEFT JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\n  LEFT JOIN v_dim_country AS c ON b.business_unit\
+    \ = c.vc_country_code\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\nGROUP BY\n\
+    \  c.country_name\nORDER BY\n  total_unique_block_clicks DESC"
+  question: Show me unique block clicks by country
+  verified_at: 1769445485
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me unique block clicks by Link Type"'
+  sql: "SELECT\n  a.linktype AS link_type,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\nFROM\n  v_fact_sfmc_performance_block\
+    \ AS b\n  LEFT JOIN v_dim_sfmc_alias AS a ON b.alias = a.alias\n  LEFT JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key\
+    \ = m.comp_key\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n  AND NOT a.linktype\
+    \ IS NULL\nGROUP BY\n  a.linktype\nORDER BY\n  total_unique_block_clicks DESC"
+  question: Show me unique block clicks by Link Type
+  verified_at: 1769445664
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me unique block clicks trend by month"'
+  sql: "SELECT\n  DATE_TRUNC('MONTH', b.min_eventdate) AS month,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\n\
+    FROM\n  v_fact_sfmc_performance_block AS b\nLEFT JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\nWHERE\n\
+    \  (\n    NOT m.email_name ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\nGROUP BY\n  DATE_TRUNC('MONTH', b.min_eventdate)\n\
+    ORDER BY\n  month DESC"
+  question: Show me unique block clicks trend by month
+  verified_at: 1769445882
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"What is the total unique block click count across all campaigns?"'
+  sql: "SELECT\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\nFROM\n  v_fact_sfmc_performance_block AS b\n  LEFT\
+    \ JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\nWHERE\n  (\n    NOT m.email_name ILIKE '%sparkpost%'\n\
+    \    OR m.email_name IS NULL\n  )\n  AND m.program_or_compaign = 'Campaign'"
+  question: What is the total unique block click count across all campaigns?
+  verified_at: 1769446324
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Compare unique block clicks percentage across different Link Tracking Aliases"'
+  sql: "SELECT\n  a.linktrackingalias AS link_tracking_alias,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks,\n\
+    \  ROUND(\n    SUM(b.unique_block_clicks) * 100.0 / NULLIF(\n      NULLIF(SUM(SUM(b.unique_block_clicks)) OVER (), 0),\n\
+    \      0\n    ),\n    1\n  ) AS percentage\nFROM\n  v_fact_sfmc_performance_block AS b\nLEFT JOIN v_dim_sfmc_alias AS\
+    \ a ON b.alias = a.alias\nLEFT JOIN v_dim_sfmc_metadata_job AS m ON b.comp_key = m.comp_key\nWHERE\n  (\n    NOT m.email_name\
+    \ ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n  AND NOT a.linktrackingalias IS NULL\nGROUP BY\n  a.linktrackingalias\n\
+    ORDER BY\n  total_unique_block_clicks DESC"
+  question: Compare unique block clicks percentage across different Link Tracking Aliases
+  verified_at: 1769446301
+  verified_by: Li Ma
+  use_as_onboarding_question: false
+- name: '"Show me Link Tracking Alias performance for Global eNewsletter in France"'
+  sql: "SELECT\n  a.linktrackingalias AS link_tracking_alias,\n  SUM(b.unique_block_clicks) AS total_unique_block_clicks\n\
+    FROM\n  v_fact_sfmc_performance_block AS b\nLEFT JOIN v_dim_sfmc_alias AS a ON b.alias = a.alias\nLEFT JOIN v_dim_sfmc_metadata_job\
+    \ AS m ON b.comp_key = m.comp_key\nLEFT JOIN v_dim_country AS c ON b.business_unit = c.vc_country_code\nWHERE\n  (\n \
+    \   NOT m.email_name ILIKE '%sparkpost%'\n    OR m.email_name IS NULL\n  )\n  AND NOT a.linktrackingalias IS NULL\n  AND\
+    \ m.program_or_compaign = 'E-newsletter'\n  AND c.vc_country_code = 'VCFR'\nGROUP BY\n  a.linktrackingalias\nORDER BY\n\
+    \  total_unique_block_clicks DESC"
+  question: Show me Link Tracking Alias performance for Global eNewsletter in France
+  verified_at: 1769446390
+  verified_by: Li Ma
+  use_as_onboarding_question: false

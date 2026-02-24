@@ -1,0 +1,174 @@
+# Business Instructions for Cortex Analyst
+# ==========================================
+# 
+# These rules guide how Cortex Analyst interprets natural language queries
+# and generates SQL for SFMC email marketing analytics.
+#
+# Last Updated: 2026-02-24
+
+instructions:
+  # ========================================================================
+  # GENERAL GUIDELINES
+  # ========================================================================
+  
+  - name: "General Query Guidelines"
+    rules:
+      - "Always use proper table references with database, schema, and table names"
+      - "When aggregating metrics, use appropriate SQL aggregation functions (AVG, SUM, COUNT)"
+      - "Include useful column aliases to make results human-readable"
+      - "Sort results in descending order for 'top N' queries unless user specifies otherwise"
+      - "Limit results to top 10-20 by default for ranking queries unless user specifies a number"
+      - "Use ISO date format (YYYY-MM-DD) for all date outputs"
+  
+  # ========================================================================
+  # METRIC CALCULATIONS
+  # ========================================================================
+  
+  - name: "Rate Calculations and Formatting"
+    rules:
+      - "All rate metrics (OPEN_RATE, CLICK_RATE, BOUNCE_RATE, OPTOUT_RATE, CTOR) are stored as decimals (0.0 to 1.0)"
+      - "When displaying rates to users, multiply by 100 and show as percentages (e.g., 0.245 → 24.5%)"
+      - "Always use AVG() for rate aggregations, not SUM()"
+      - "Round percentage displays to 1-2 decimal places for readability"
+      - "CTOR (Click-to-Open Rate) = CLICK_COUNT / OPEN_COUNT, not CLICK_COUNT / SENT_COUNT"
+  
+  - name: "Volume Metrics"
+    rules:
+      - "SENT_COUNT: Total emails sent"
+      - "OPEN_COUNT: Total emails opened (unique opens)"
+      - "CLICK_COUNT: Total clicks (unique clicks)"
+      - "BOUNCE_COUNT: Total bounced emails"
+      - "OPTOUT_COUNT: Total unsubscribes"
+      - "Use SUM() for volume aggregations across periods or groups"
+  
+  # ======================================================================== 
+  # TIME PERIOD HANDLING
+  # ========================================================================
+  
+  - name: "Date Range Interpretation"
+    rules:
+      - "'Last month' = Previous complete calendar month (e.g., if today is Feb 15, last month = Jan 1 to Jan 31)"
+      - "'Last week' = Previous 7 complete days, not calendar week"
+      - "'Last 30 days' = Rolling 30 days from today"
+      - "'This month' = Current month to date"
+      - "'This week' = Current week to date"
+      - "'Yesterday' = Previous calendar day"
+      - "'Today' = Current calendar day"
+      - "Q1 = Jan-Mar, Q2 = Apr-Jun, Q3 = Jul-Sep, Q4 = Oct-Dec"
+      - "Always use SEND_DATE or SENT_DATE for time-based filtering"
+  
+  # ========================================================================
+  # MARKET AND GEOGRAPHY
+  # ========================================================================
+  
+  - name: "Market Analysis"
+    rules:
+      - "MARKET dimension represents geographic markets/countries"
+      - "When analyzing by market, always GROUP BY MARKET"
+      - "UK market may include variations: 'UK', 'United Kingdom', 'GB'"
+      - "Sort markets alphabetically unless user asks for ranking by performance"
+      - "When comparing markets, show all markets unless user specifies specific ones"
+  
+  # ========================================================================
+  # CAMPAIGN FILTERING
+  # ========================================================================
+  
+  - name: "Default Campaign Filters"
+    rules:
+      - "Exclude test campaigns: Filter out CAMPAIGN_NAME containing 'TEST', 'test', or '_TEST_'"
+      - "For meaningful metrics, only include campaigns with SENT_COUNT >= 100"
+      - "CAMPAIGN_TYPE values: 'promotional', 'transactional', 'newsletter', 'triggered'"
+      - "EMAIL_TYPE values: 'campaign', 'triggered', 'program', 'enewsletter', 'service_reminder'"
+  
+  # ========================================================================
+  # PERFORMANCE BENCHMARKING
+  # ========================================================================
+  
+  - name: "Benchmark Comparisons"
+    rules:
+      - "Use CORTEX_SFMC_BENCHMARK_THRESHOLDS table for industry benchmarks"
+      - "Benchmark categories: 'critical', 'warning', 'good', 'strong', 'excellent'"
+      - "When asked about 'good' or 'bad' performance, compare against benchmark thresholds"
+      - "Different EMAIL_TYPE has different benchmark ranges"
+      - "Open rates: Excellent > 25%, Good > 18%, Warning < 15%, Critical < 10%"
+      - "Click rates: Excellent > 4%, Good > 2.5%, Warning < 1.5%, Critical < 0.5%"
+  
+  # ========================================================================
+  # TREND ANALYSIS
+  # ========================================================================
+  
+  - name: "Trend and Time Series"
+    rules:
+      - "For trend analysis, use DATE_TRUNC() to group by day, week, or month"
+      - "Weekly trends: DATE_TRUNC('week', SEND_DATE)"
+      - "Monthly trends: DATE_TRUNC('month', SEND_DATE)"
+      - "Always ORDER BY date ascending for time series"
+      - "Include comparison to previous period when asked about changes"
+  
+  # ========================================================================
+  # TOP PERFORMERS / RANKING
+  # ========================================================================
+  
+  - name: "Top N Queries"
+    rules:
+      - "'Top campaigns' = Rank by one or more performance metrics"
+      - "Default ranking metrics: OPEN_RATE, CLICK_RATE, or SENT_COUNT depending on context"
+      - "Always show the metric being ranked in results"
+      - "Include campaign name, metric value, and sent count for context"
+      - "Default LIMIT 10 for top queries unless user specifies different number"
+  
+  # ========================================================================
+  # ENGAGEMENT ANALYSIS
+  # ========================================================================
+  
+  - name: "Engagement Metrics"
+    rules:
+      - "When user asks about 'engagement', include OPEN_RATE, CLICK_RATE, and CTOR"
+      - "High engagement = High OPEN_RATE (>25%) AND High CLICK_RATE (>4%)"
+      - "Low engagement = Low OPEN_RATE (<15%) OR Low CLICK_RATE (<1.5%)"
+      - "Engagement trends should show all three metrics over time"
+  
+  # ========================================================================
+  # DATA QUALITY
+  # ========================================================================
+  
+  - name: "Data Quality Checks"
+    rules:
+      - "Filter out NULL or zero SENT_COUNT when calculating rates"
+      - "Exclude campaigns with SENT_DATE in the future"
+      - "For rate calculation, ensure denominator is not zero"
+      - "Missing MARKET values should be labeled as 'Unknown' or 'Not Specified'"
+  
+  # ========================================================================
+  # AGGREGATION BEST PRACTICES
+  # ========================================================================
+  
+  - name: "Aggregation Rules"
+    rules:
+      - "When grouping by MARKET and CAMPAIGN_TYPE, show both dimensions"
+      - "Always include record count when showing averages (e.g., AVG and COUNT)"
+      - "For accurate rate averages across campaigns, weight by SENT_COUNT if available"
+      - "Use ROUND() function to 2 decimal places for percentages"
+  
+  # ========================================================================
+  # BUSINESS UNIT ANALYSIS
+  # ========================================================================
+  
+  - name: "Business Unit Handling"
+    rules:
+      - "BUSINESS_UNIT values: VCUK (UK), VCDE (Germany), VCFR (France), VCES (Spain), VCIT (Italy), VCNL (Netherlands), VCBE (Belgium)"
+      - "When analyzing by BU, group by BUSINESS_UNIT"
+      - "BU performance comparison should include all major BUs unless specified"
+      - "Show BU name along with market for geographical context"
+
+  # ========================================================================
+  # CUSTOM QUERY PATTERNS
+  # ========================================================================
+  
+  - name: "Common Query Patterns"
+    rules:
+      - "When asked 'How did X perform?', show: sent count, open rate, click rate, bounce rate"
+      - "When asked 'Compare X vs Y', show side-by-side metrics for both"
+      - "When asked 'Trend over time', use appropriate time grain (daily, weekly, monthly)"
+      - "When asked 'Top performers', rank by specified metric descending"
+      - "When asked 'Which campaigns had issues?', filter by low performance or high bounce/optout rates"
