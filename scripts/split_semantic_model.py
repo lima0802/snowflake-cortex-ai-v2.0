@@ -25,6 +25,29 @@ from datetime import datetime
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Try to import ruamel.yaml for better formatting
+try:
+    from ruamel.yaml import YAML
+    from ruamel.yaml.scalarstring import LiteralScalarString
+    HAS_RUAMEL = True
+except ImportError:
+    HAS_RUAMEL = False
+
+
+# PyYAML fallback: Custom literal string class
+class LiteralStr(str):
+    """String subclass that will be represented as YAML literal block (|)"""
+    pass
+
+
+def literal_representer(dumper, data):
+    """YAML representer for literal block style"""
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+
+
+# Register the literal representer with PyYAML
+yaml.add_representer(LiteralStr, literal_representer)
+
 
 class SemanticModelSplitter:
     """Split a monolithic semantic model into modular components"""
@@ -75,19 +98,59 @@ class SemanticModelSplitter:
         print(f"✅ Extracted {count} verified queries")
         return verified_queries
     
+    def format_sql_as_literal(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Format SQL fields as literal block scalars for better readability"""
+        if 'verified_queries' not in data:
+            return data
+        
+        queries = data.get('verified_queries', [])
+        if not isinstance(queries, list):
+            return data
+        
+        for query in queries:
+            if 'sql' in query and isinstance(query['sql'], str):
+                # Normalize escaped newlines and strip trailing whitespace
+                sql = query['sql'].replace('\\n', '\n')
+                lines = [line.rstrip() for line in sql.splitlines()]
+                sql_clean = '\n'.join(lines).strip() + '\n'
+                
+                if HAS_RUAMEL:
+                    query['sql'] = LiteralScalarString(sql_clean)
+                else:
+                    # For PyYAML, use a custom LiteralStr class
+                    query['sql'] = LiteralStr(sql_clean)
+        
+        return data
+    
     def save_yaml(self, data: Dict[str, Any], filename: str):
-        """Save data to YAML file"""
+        """Save data to YAML file with proper SQL formatting"""
         output_path = self.output_dir / filename
         
-        with open(output_path, 'w', encoding='utf-8') as f:
-            yaml.dump(
-                data,
-                f,
-                default_flow_style=False,
-                sort_keys=False,
-                allow_unicode=True,
-                width=120
-            )
+        # Format SQL as literal blocks for verified_queries
+        if filename == 'verified_queries.yaml':
+            data = self.format_sql_as_literal(data)
+        
+        if HAS_RUAMEL:
+            # Use ruamel.yaml for best formatting
+            ryaml = YAML()
+            ryaml.preserve_quotes = True
+            ryaml.width = 120
+            ryaml.indent(mapping=2, sequence=2, offset=0)
+            ryaml.default_flow_style = False
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                ryaml.dump(data, f)
+        else:
+            # Fall back to PyYAML
+            with open(output_path, 'w', encoding='utf-8') as f:
+                yaml.dump(
+                    data,
+                    f,
+                    default_flow_style=False,
+                    sort_keys=False,
+                    allow_unicode=True,
+                    width=120
+                )
         
         print(f"💾 Saved: {output_path}")
     
@@ -194,6 +257,13 @@ python scripts/deploy_semantic_model.py --stage TEST_SEMANTIC_MODELS
         print("🔧 SEMANTIC MODEL SPLITTER")
         print("="*70 + "\n")
         
+        # Show formatting method
+        if HAS_RUAMEL:
+            print("✅ Using ruamel.yaml for optimal SQL formatting")
+        else:
+            print("ℹ️  Using PyYAML (install ruamel.yaml for better formatting)")
+        print()
+        
         # Backup original file
         backup_path = self.input_file.parent / f"{self.input_file.stem}_backup{self.input_file.suffix}"
         if not backup_path.exists():
@@ -218,6 +288,11 @@ python scripts/deploy_semantic_model.py --stage TEST_SEMANTIC_MODELS
         self.save_yaml(instructions, 'instructions.yaml')
         self.save_yaml(verified_queries, 'verified_queries.yaml')
         
+        # Count formatted SQL queries
+        sql_count = len([q for q in verified_queries.get('verified_queries', []) if 'sql' in q])
+        if sql_count > 0:
+            print(f"✨ Formatted {sql_count} SQL queries as literal blocks for readability")
+        
         print()
         
         # Create README
@@ -230,7 +305,7 @@ python scripts/deploy_semantic_model.py --stage TEST_SEMANTIC_MODELS
         print(f"📊 Files created:")
         print(f"   - schema.yaml")
         print(f"   - instructions.yaml")
-        print(f"   - verified_queries.yaml")
+        print(f"   - verified_queries.yaml (SQL in literal block format)")
         print(f"   - README.md")
         print(f"\n🚀 Next steps:")
         print(f"   1. Review the generated files")
