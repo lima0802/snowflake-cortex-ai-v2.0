@@ -1,0 +1,104 @@
+name: V_FACT_SFMC_PERFORMANCE_BLOCK
+description: The table contains records of email marketing block performance metrics. Each record represents a specific
+  email block's performance within individual email campaigns, including click engagement data and timing information.
+base_table:
+  database: DEV_MARCOM_DB
+  schema: DM
+  table: V_FACT_SFMC_PERFORMANCE_BLOCK
+dimensions:
+- name: ALIAS
+  synonyms:
+  - alternate_identifier
+  - object_alias
+  - reference_name
+  - secondary_name
+  description: An alternate name or identifier.
+  expr: ALIAS
+  data_type: VARCHAR(16777216)
+  sample_values:
+  - EX60_Launch_configurator_BlockType::1COLB_BlockPosition::8_LinkType::Img1_LinkText::ZijaanzichtvandebuitenkantvaneenVolvoEX60metverschillendekoetswerkkleuren_LanguageCode::NL&OTD_GUID=0746663f-6019-461c-9bd6-f708dab6cb94
+  - MHEV_PHEV_Accessories_BlockType::3GRIDB_BlockPosition::2_LinkType::CTA1_LinkText::Discoveraccessories_LanguageCode::CAEN&OTD_GUID=42642ce0-528f-415d-ac23-d785a06f712d
+  - Accessories_BlockType::MAINB_BlockPosition::2_LinkType::Img1_LinkText::Enkollasjavforskjelligbiltilbehørsombrukesutendørs._LanguageCode::NO&OTD_GUID=b157aaa9-2a96-4696-ae9c-2cf4c5ad67cd
+- name: BUSINESS_UNIT
+  synonyms:
+  - bu
+  - country_code
+  - market
+  - market_code
+  - market_identifier
+  - vc_code
+  description: 'A distinct section within an organization representing a market.
+
+    Examples: VCFI (Finland), VCCA (Canada), VCFR (France), VCAU (Australia).'
+  expr: RIGHT(COMP_KEY, 4)
+  data_type: VARCHAR(16777216)
+  sample_values:
+  - VCUK
+  - VCIT
+  - VCIE
+- name: COMP_KEY
+  synonyms:
+  - business_send_key
+  - composite_key
+  - join_key
+  - record_key
+  - unique_key
+  description: 'Composite key - unique identifier created by combining SEND_ID and BUSINESS_UNIT.
+
+    Example: ''2149529VCFI''. Primary key for this table.'
+  expr: COMP_KEY
+  data_type: VARCHAR(16777216)
+  sample_values:
+  - 2224536VCBE
+  - 2224445VCSE
+  - 2207411VCUS
+- name: EMAIL_NAME
+  synonyms:
+  - asset_name
+  - campaign_name
+  - creative_name
+  - email_name
+  - email_title
+  - job_name
+  - message_title
+  - send_name
+  description: 'The name or title assigned to a particular email as a reference for identification.
+
+    Contains campaign details like program, date, model, and version.'
+  expr: EMAIL_NAME
+  data_type: VARCHAR(16777216)
+  sample_values:
+  - VCUS-EM1-Urgently-Post-Accident_Marketing_Awareness_202507
+  - VCZA_CAL_CCAMP_20260122_10070-life-updated_EX60-Launch_EDM7_V1_EN
+  - VCUS_CPROG_first-year-program-MHEV_Safety_EDM4_V4_USEN
+time_dimensions:
+- name: MIN_EVENTDATE
+  synonyms:
+  - earliest_event_date
+  - first_event_date
+  - initial_event_date
+  - minimum_date
+  - start_date
+  description: The earliest event date within the performance block.
+  expr: MIN_EVENTDATE
+  data_type: DATE
+  sample_values:
+  - '2025-12-02'
+  - '2025-12-01'
+  - '2026-01-24'
+facts:
+- name: UNIQUE_BLOCK_CLICKS
+  synonyms:
+  - block_click_count
+  - deduplicated_clicks
+  - distinct_block_clicks
+  - distinct_clicks_per_block
+  - unique_click_count
+  description: The count of unique clicks within a specific block.
+  expr: UNIQUE_BLOCK_CLICKS
+  data_type: NUMBER(18,0)
+  access_modifier: public_access
+  sample_values:
+  - '79'
+  - '610'
+  - '2069'

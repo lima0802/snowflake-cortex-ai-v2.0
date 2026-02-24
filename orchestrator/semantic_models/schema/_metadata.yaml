@@ -1,0 +1,6 @@
+# Semantic Model Metadata
+# This file contains the model name and description
+# Combined with table files during merge
+
+name: SFMC_EMAIL_PERFORMANCE_DEV
+description: "Salesforce Marketing Cloud email campaign performance analytics for Volvo.\nTracks sends, opens, clicks, bounces, and unsubscribes across business units and markets.\nPrimary use cases: campaign performance monitoring, engagement rate analysis, \nmarket comparisons, and trend reporting.\n\nBusiness Units: VCUK (UK), VCDE (Germany), VCFR (France), VCES (Spain), \nVCIT (Italy), VCNL (Netherlands), VCBE (Belgium), and others.\n"

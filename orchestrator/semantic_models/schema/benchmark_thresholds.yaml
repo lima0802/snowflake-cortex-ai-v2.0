@@ -1,0 +1,344 @@
+name: CORTEX_SFMC_BENCHMARK_THRESHOLDS
+synonyms:
+- benchmark
+- benchmarks
+- industry_benchmark
+- industry_standard
+- kpi_target
+- performance_standard
+- target_range
+- threshold
+- thresholds
+description: 'Industry benchmark thresholds for email marketing metrics (2024-2025).
+
+  Use to auto-classify performance as critical/warning/good/strong/excellent.
+
+  Supports: open_rate, click_rate, ctor, optout_rate, bounce_rate.
+
+  Can filter by EMAIL_TYPE: all, triggered, program, campaign, enewsletter, service_reminder.'
+base_table:
+  database: DEV_MARCOM_DB
+  schema: APP_DIRECTMARKETING
+  table: CORTEX_SFMC_BENCHMARK_THRESHOLDS
+dimensions:
+- name: ACTION_REQUIRED
+  synonyms:
+  - action
+  - action_plan
+  - actions
+  - corrective_action
+  - how_to_fix
+  - improvement_action
+  - next_steps
+  - optimization_steps
+  - recommendation
+  - recommendations
+  - remediation
+  - suggested_action
+  - what_to_do
+  description: Recommended actions or next steps based on performance analysis or benchmark comparisons. Provides guidance
+    for improving metrics that fall below target thresholds.
+  expr: ACTION_REQUIRED
+  data_type: VARCHAR(500)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - Monitor closely. Consider A/B testing subject lines and improving segmentation.
+  - Maintain current practices. Continue optimization efforts.
+  - Immediate attention needed. Check deliverability, subject lines, sender reputation, and list quality.
+- name: BENCHMARK_ID
+  synonyms:
+  - benchmark_code
+  - benchmark_identifier
+  - benchmark_key
+  - kpi_threshold_id
+  - record_id
+  - threshold_id
+  - threshold_identifier
+  - threshold_key
+  description: Primary key for benchmark record. Unique identifier combining metric name, email type, and status level (e.g.,
+    CTOR_ALL_GOOD, OR_PROGRAM_EXPECTED).
+  expr: BENCHMARK_ID
+  data_type: VARCHAR(100)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - OR_ALL_GOOD
+  - OR_ALL_CRITICAL
+  - OR_ALL_WARNING
+- name: DESCRIPTION
+  synonyms:
+  - benchmark_context
+  - benchmark_description
+  - benchmark_explanation
+  - context
+  - explanation
+  - interpretation
+  - meaning
+  - threshold_description
+  - threshold_meaning
+  - what_this_means
+  description: Performance threshold descriptions for email marketing benchmarks in the premium automotive industry. Explains
+    what each threshold range means and provides context for interpretation.y.
+  expr: DESCRIPTION
+  data_type: VARCHAR(1000)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - Open rate below 12% is significantly below premium automotive benchmark.
+  - Open rate 12-15% is mass-market automotive average, below premium target.
+  - Open rate 15-25% meets premium automotive benchmark. This is the Volvo target range.
+- name: EMAIL_TYPE
+  synonyms:
+  - automation_type
+  - campaign_type
+  - communication_type
+  - content_type
+  - email_category
+  - email_classification
+  - email_kind
+  - journey_type
+  - message_type
+  - send_type
+  description: 'Email type for type-specific benchmarks. Values: all, triggered, program, campaign, enewsletter, service_reminder.
+    Use to get benchmarks specific to different email categories.'
+  expr: EMAIL_TYPE
+  data_type: VARCHAR(50)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+- name: INDUSTRY
+  synonyms:
+  - business_sector
+  - industry_category
+  - industry_classification
+  - industry_segment
+  - industry_type
+  - market_segment
+  - market_vertical
+  - sector
+  - vertical
+  description: The industry category or sector classification. Default value is 'premium_automotive' for Volvo Cars benchmarks.
+    Enables industry-specific benchmark comparisons.
+  expr: INDUSTRY
+  data_type: VARCHAR(50)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - premium_automotive
+- name: IS_INVERSE
+  synonyms:
+  - inverse_benchmark
+  - inverse_flag
+  - inverse_indicator
+  - inverse_metric
+  - lower_is_better
+  - negative_metric
+  - reverse_logic
+  - reversed_threshold
+  description: Indicates whether the benchmark threshold uses inverse logic for evaluation. TRUE for metrics where lower
+    is better (optout_rate, bounce_rate). FALSE for metrics where higher is better (open_rate, click_rate, ctor).
+  expr: IS_INVERSE
+  data_type: BOOLEAN
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - 'FALSE'
+  - 'TRUE'
+- name: METRIC_NAME
+  synonyms:
+  - indicator
+  - kpi
+  - kpi_name
+  - measure
+  - measurement
+  - metric
+  - metric_identifier
+  - metric_type
+  - performance_indicator
+  - performance_metric
+  description: 'The name of the marketing performance metric being measured. Values: open_rate, click_rate, ctor, optout_rate,
+    bounce_rate. Primary dimension for filtering benchmarks.'
+  expr: METRIC_NAME
+  data_type: VARCHAR(50)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - ctor
+  - click_rate
+  - open_rate
+- name: SEARCH_CONTENT
+  synonyms:
+  - full_text
+  - index_content
+  - indexed_text
+  - search_field
+  - search_index
+  - search_text
+  - searchable_content
+  - semantic_content
+  description: Text content used for searching benchmark threshold data across different email marketing metrics and time
+    periods. Auto-generated field combining all relevant fields for Cortex Search semantic indexing.
+  expr: SEARCH_CONTENT
+  data_type: VARCHAR(2000)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - 'Metric: open_rate. Email Type: all. Status: good (Good - Premium Benchmark). Threshold: 15.0000% to 25.0000%. Description:
+    Open rate 15-25% meets premium automotive benchmark. This is the Volvo target range. Action: Maintain current practices.
+    Continue optimization efforts. Industry: premium_automotive Period: 2024-2025'
+  - 'Metric: ctor. Email Type: all. Status: strong (Strong - Above Benchmark). Threshold: 18.0000% to 25.0000%. Description:
+    CTOR 18-25% is strong performance. Content resonates well with audience. Action: Excellent. Document successful content
+    strategies. Industry: premium_automotive Period: 2024-2025'
+  - 'Metric: open_rate. Email Type: all. Status: critical (Critical - Below Benchmark). Threshold: Below 12.0000%. Description:
+    Open rate below 12% is significantly below premium automotive benchmark. Action: Immediate attention needed. Check deliverability,
+    subject lines, sender reputation, and list quality. Industry: premium_automotive Period: 2024-2025'
+- name: STATUS
+  synonyms:
+  - alert_level
+  - benchmark_status
+  - health_level
+  - health_status
+  - performance_level
+  - performance_status
+  - performance_tier
+  - rating
+  - status_level
+  - threshold_status
+  description: 'Performance status levels used for benchmark evaluation and alerting purposes. Values: critical, warning,
+    good, strong, excellent, info. Ordered from worst to best performance.'
+  expr: STATUS
+  data_type: VARCHAR(20)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - good
+  - critical
+  - warning
+- name: STATUS_LABEL
+  synonyms:
+  - display_status
+  - label_text
+  - performance_label
+  - readable_status
+  - status_description
+  - status_display
+  - status_name
+  - status_text
+  - threshold_label
+  description: Performance status labels indicating how metrics compare against industry benchmarks and standards. Human-readable
+    labels like 'Good - Premium Benchmark' or 'Critical - Below Benchmark'.
+  expr: STATUS_LABEL
+  data_type: VARCHAR(100)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - Good - Premium Benchmark
+  - Critical - Below Benchmark
+  - Warning - Mass Market Average
+- name: YEAR_PERIOD
+  synonyms:
+  - benchmark_period
+  - benchmark_timeframe
+  - benchmark_year
+  - data_period
+  - effective_period
+  - period
+  - reference_period
+  - time_period
+  - validity_period
+  description: The year period for benchmark threshold analysis. Default value is '2024-2025' indicating the benchmark validity
+    period. Enables historical benchmark tracking and updates.
+  expr: YEAR_PERIOD
+  data_type: VARCHAR(20)
+  cortex_search_service:
+    database: DEV_MARCOM_DB
+    schema: APP_DIRECTMARKETING
+    service: CORTEX_SFMC_BENCHMARK_SEARCH
+  sample_values:
+  - 2024-2025
+time_dimensions:
+- name: LAST_UPDATED
+  synonyms:
+  - audit_timestamp
+  - change_date
+  - last_modified
+  - modification_date
+  - modified_timestamp
+  - refresh_date
+  - update_date
+  - update_timestamp
+  - updated_at
+  description: The timestamp when the benchmark threshold record was last updated. Used for tracking data freshness and
+    audit purposes.
+  expr: LAST_UPDATED
+  data_type: TIMESTAMP_NTZ(9)
+  sample_values:
+  - 2025-12-29T07:23:07.786+0000
+  - 2025-12-29T07:23:03.182+0000
+  - 2025-12-29T07:23:39.867+0000
+facts:
+- name: MAX_VALUE
+  synonyms:
+  - ceiling
+  - max_limit
+  - max_threshold
+  - maximum_limit
+  - maximum_threshold
+  - top_value
+  - upper_bound
+  - upper_limit
+  - upper_range
+  - upper_threshold
+  description: The maximum allowable value for benchmark thresholds. Upper bound of the threshold range in percentage. NULL
+    indicates no upper limit (e.g., >40% for excellent open rate).
+  expr: MAX_VALUE
+  data_type: NUMBER(10,4)
+  access_modifier: public_access
+  sample_values:
+  - '15.0000'
+  - '25.0000'
+  - '12.0000'
+  default_aggregation: 0
+- name: MIN_VALUE
+  synonyms:
+  - bottom_value
+  - floor
+  - lower_bound
+  - lower_limit
+  - lower_range
+  - lower_threshold
+  - min_limit
+  - min_threshold
+  - minimum_limit
+  - minimum_threshold
+  description: The minimum value threshold used for benchmarking. Lower bound of the threshold range in percentage. NULL
+    indicates no lower limit (e.g., <12% for critical open rate).
+  expr: MIN_VALUE
+  data_type: NUMBER(10,4)
+  access_modifier: public_access
+  sample_values:
+  - '15.0000'
+  - '12.0000'
+primary_key:
+  columns:
+  - BENCHMARK_ID

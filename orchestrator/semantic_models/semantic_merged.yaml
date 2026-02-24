@@ -900,120 +900,6 @@ tables:
   primary_key:
     columns:
     - VC_COUNTRY_CODE
-- name: V_DIM_SFMC_ALIAS
-  synonyms:
-  - content_block_references
-  - email_blocks
-  - email_component_aliases
-  - email_content_blocks
-  - email_element_aliases
-  - email_template_blocks
-  - marketing_cloud_aliases
-  - marketing_email_blocks
-  - sfmc_block_metadata
-  - sfmc_content_aliases
-  description: The table contains records of email content blocks used in marketing communications. Each record represents
-    a specific block within an email and includes details about the block's type, position, and associated link tracking information.
-  base_table:
-    database: DEV_MARCOM_DB
-    schema: DM
-    table: V_DIM_SFMC_ALIAS
-  dimensions:
-  - name: ALIAS
-    synonyms:
-    - alternate_name
-    - nickname
-    - object_name
-    - reference_name
-    - secondary_identifier
-    description: An alternative name used to reference an object.
-    expr: ALIAS
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - others
-    - EX40_BEV_features_BlockType%3a%3a1COLB_BlockPosition%3a%3a2_LinkType%3a%3aCTA1_LinkText%3a%3aUtforskadinVolvo_LanguageCode%3a%3aSV%26OTD_GUID_37ba29dc-ff8c-4b1f-901e-e583bf6ac39b
-    - EX40_BEV_features_BlockType%3a%3a1COLB_BlockPosition%3a%3a3_LinkType%3a%3aCTA1_LinkText%3a%3aTutustuVolvoosi_LanguageCode%3a%3aFI%26OTD_GUID_6a2d439b-2621-4ca3-adff-361009bd3b72
-  - name: ALIAS_RAW
-    synonyms:
-    - original_alias
-    - raw_identifier
-    - source_alias
-    - unprocessed_name
-    description: Raw alias data before processing or transformation.
-    expr: ALIAS_RAW
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - https://www.volvocars.com/uk/cars/es90-electric/?email_name=VCUK_LCAMP_20250905_10055-for-life-in-balance_ES90-finance-options_EDM1_V1_EN&jobid=2196537&batchid=8&subscriberKey=Mmv0vCkXv9ceJnbtNtqWwnJegWJTzofQ&utm_source=sfmc&utm_medium=email&utm_content=https%3a%2f%2fwww.volvocars.com%2fuk%2fcars%2fes90-electric%2f&utm_campaign=VCUK_LCAMP_20250905_10055-for-life-in-balance_ES90-finance-options_EDM1_V1_EN&campaignCode=&sfmc_id=333062095&hem=c401145f9b75fa33bced6f42f6635b87ec1669f4d56401947c7a28f0ad73288c&ns-EncryptedId=A0xrexGbOi1OXHKBJCKqmSip4dah9o8N
-    - https://www.volvocars.com/us/?utm_source=sfmc&utm_medium=email&utm_content=https%3a%2f%2fwww.volvocars.com%2fus%2f&utm_campaign=VCUS_NOT_CENEWS_20251105_B2C_global-enewsletter-October-2025-All_EDM1_V2_USEN&campaignCode=&email_name=VCUS_NOT_CENEWS_20251105_B2C_global-enewsletter-October-2025-All_EDM1_V2_USEN&hem=a82775adcd90ea263830a16d23d14e6fd7999f262c2ccccca56e77f1bf5d1dbb&ns-EncryptedId=1OUCp+q9DLj7jZlXGtNlM4iL4r2x83azOnn6AebDwNuJsR5iDn+Bjg==&jobid=2208787&batchid=1959&subscriberKey=Bv2EUarhkf5PP6psHtZ/zg==&sfmc_journey_id=c5a5b0e8-b498-4cf4-971a-c8b1b1847e86&sfmc_journey_name=CVSUN_TOC_NEWE_S02521150B_C2g_olab-lnewelsteet-rcOoteb-r0252A-llE_MD_12VU_ESN&sfmc_activity_id=528eda0a-006b-43b5-b365-0ab006035477&sfmc_activity_name=CVSUN_TOC_NEWE_S02521150B_C2g_olab-lnewelsteet-
-    - https://www.volvocars.com/uk/car-finance/faq/volvo-loan/?category=Delivery&utm_source=sfmc&utm_term=&utm_content=4600219&utm_id=dcd193ac-5aa0-473c-b4f1-9be715a03fdd&sfmc_id=945846460&sfmc_activityid=76738ab8-e0ee-49c9-8e75-145e5ceb9ea4&utm_medium=email&utm_campaign=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V2_EN&email_name=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V2_EN&jobid=2153516&batchid=212&subscriberKey=goqLAT5/JoH5xzE+mRMJ5SfWDYh+kXmy&utm_source=sfmc&utm_medium=email&utm_content=cbv-otd_cta-link_order-tracking-dynamic&utm_campaign=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V1_EN&campaignCode=&sfmc_id=945846460&hem=6cd4b341f1f13ddce8b98816875fee43d1755ef5cfc8494fedc973ce27b6a886&ns-EncryptedId=gK4H2hZU5ECP5C+iaj7txXJpaeKXrOgh
-  - name: BLOCKPOSITION
-    synonyms:
-    - block_location
-    - block_order
-    - content_position
-    - layout_index
-    - section_placement
-    description: The specific location of a content block within the layout of a document or email template.
-    expr: BLOCKPOSITION
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - '2'
-    - '6'
-  - name: BLOCKTYPE
-    synonyms:
-    - block_category
-    - block_classification
-    - content_category
-    - content_type
-    - section_type
-    description: The categorization of a content block within a document or email template.
-    expr: BLOCKTYPE
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - 1COLB
-    - 3GRIDB
-  - name: LINKTEXT
-    synonyms:
-    - anchor_text
-    - clickable_text
-    - display_text
-    - hyperlink_text
-    - link_label
-    description: The visible, clickable text part of a hyperlink that users interact with.
-    expr: LINKTEXT
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - Kaikkilataamisesta
-    - Alltomladdning
-    - JetztKontoerstellen
-  - name: LINKTRACKINGALIAS
-    synonyms:
-    - click_tracking_id
-    - link_tracking_name
-    - tracking_identifier
-    - url_tracking_alias
-    description: Link tracking alias used for monitoring and measuring click-through performance in marketing campaigns.
-    expr: LINKTRACKINGALIAS
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - VolvoCarsApp
-    - Electrification
-  - name: LINKTYPE
-    synonyms:
-    - hyperlink_classification
-    - link_category
-    - link_function
-    - link_purpose
-    - url_type
-    description: The classification of a link, indicating its purpose or function, such as image, cta, etc.
-    expr: LINKTYPE
-    data_type: VARCHAR(16777216)
-    sample_values:
-    - RichTextLink3
-    - RichTextLink1
-  primary_key:
-    columns:
-    - ALIAS
 - name: V_DIM_SFMC_METADATA_JOB
   synonyms:
   - campaign_metadata_view
@@ -1765,6 +1651,120 @@ tables:
   primary_key:
     columns:
     - COMP_KEY
+- name: V_DIM_SFMC_ALIAS
+  synonyms:
+  - content_block_references
+  - email_blocks
+  - email_component_aliases
+  - email_content_blocks
+  - email_element_aliases
+  - email_template_blocks
+  - marketing_cloud_aliases
+  - marketing_email_blocks
+  - sfmc_block_metadata
+  - sfmc_content_aliases
+  description: The table contains records of email content blocks used in marketing communications. Each record represents
+    a specific block within an email and includes details about the block's type, position, and associated link tracking information.
+  base_table:
+    database: DEV_MARCOM_DB
+    schema: DM
+    table: V_DIM_SFMC_ALIAS
+  dimensions:
+  - name: ALIAS
+    synonyms:
+    - alternate_name
+    - nickname
+    - object_name
+    - reference_name
+    - secondary_identifier
+    description: An alternative name used to reference an object.
+    expr: ALIAS
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - others
+    - EX40_BEV_features_BlockType%3a%3a1COLB_BlockPosition%3a%3a2_LinkType%3a%3aCTA1_LinkText%3a%3aUtforskadinVolvo_LanguageCode%3a%3aSV%26OTD_GUID_37ba29dc-ff8c-4b1f-901e-e583bf6ac39b
+    - EX40_BEV_features_BlockType%3a%3a1COLB_BlockPosition%3a%3a3_LinkType%3a%3aCTA1_LinkText%3a%3aTutustuVolvoosi_LanguageCode%3a%3aFI%26OTD_GUID_6a2d439b-2621-4ca3-adff-361009bd3b72
+  - name: ALIAS_RAW
+    synonyms:
+    - original_alias
+    - raw_identifier
+    - source_alias
+    - unprocessed_name
+    description: Raw alias data before processing or transformation.
+    expr: ALIAS_RAW
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - https://www.volvocars.com/uk/cars/es90-electric/?email_name=VCUK_LCAMP_20250905_10055-for-life-in-balance_ES90-finance-options_EDM1_V1_EN&jobid=2196537&batchid=8&subscriberKey=Mmv0vCkXv9ceJnbtNtqWwnJegWJTzofQ&utm_source=sfmc&utm_medium=email&utm_content=https%3a%2f%2fwww.volvocars.com%2fuk%2fcars%2fes90-electric%2f&utm_campaign=VCUK_LCAMP_20250905_10055-for-life-in-balance_ES90-finance-options_EDM1_V1_EN&campaignCode=&sfmc_id=333062095&hem=c401145f9b75fa33bced6f42f6635b87ec1669f4d56401947c7a28f0ad73288c&ns-EncryptedId=A0xrexGbOi1OXHKBJCKqmSip4dah9o8N
+    - https://www.volvocars.com/us/?utm_source=sfmc&utm_medium=email&utm_content=https%3a%2f%2fwww.volvocars.com%2fus%2f&utm_campaign=VCUS_NOT_CENEWS_20251105_B2C_global-enewsletter-October-2025-All_EDM1_V2_USEN&campaignCode=&email_name=VCUS_NOT_CENEWS_20251105_B2C_global-enewsletter-October-2025-All_EDM1_V2_USEN&hem=a82775adcd90ea263830a16d23d14e6fd7999f262c2ccccca56e77f1bf5d1dbb&ns-EncryptedId=1OUCp+q9DLj7jZlXGtNlM4iL4r2x83azOnn6AebDwNuJsR5iDn+Bjg==&jobid=2208787&batchid=1959&subscriberKey=Bv2EUarhkf5PP6psHtZ/zg==&sfmc_journey_id=c5a5b0e8-b498-4cf4-971a-c8b1b1847e86&sfmc_journey_name=CVSUN_TOC_NEWE_S02521150B_C2g_olab-lnewelsteet-rcOoteb-r0252A-llE_MD_12VU_ESN&sfmc_activity_id=528eda0a-006b-43b5-b365-0ab006035477&sfmc_activity_name=CVSUN_TOC_NEWE_S02521150B_C2g_olab-lnewelsteet-
+    - https://www.volvocars.com/uk/car-finance/faq/volvo-loan/?category=Delivery&utm_source=sfmc&utm_term=&utm_content=4600219&utm_id=dcd193ac-5aa0-473c-b4f1-9be715a03fdd&sfmc_id=945846460&sfmc_activityid=76738ab8-e0ee-49c9-8e75-145e5ceb9ea4&utm_medium=email&utm_campaign=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V2_EN&email_name=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V2_EN&jobid=2153516&batchid=212&subscriberKey=goqLAT5/JoH5xzE+mRMJ5SfWDYh+kXmy&utm_source=sfmc&utm_medium=email&utm_content=cbv-otd_cta-link_order-tracking-dynamic&utm_campaign=VCUK_CPROG_order-to-delivery_before-delivery_eDM5_V1_EN&campaignCode=&sfmc_id=945846460&hem=6cd4b341f1f13ddce8b98816875fee43d1755ef5cfc8494fedc973ce27b6a886&ns-EncryptedId=gK4H2hZU5ECP5C+iaj7txXJpaeKXrOgh
+  - name: BLOCKPOSITION
+    synonyms:
+    - block_location
+    - block_order
+    - content_position
+    - layout_index
+    - section_placement
+    description: The specific location of a content block within the layout of a document or email template.
+    expr: BLOCKPOSITION
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - '2'
+    - '6'
+  - name: BLOCKTYPE
+    synonyms:
+    - block_category
+    - block_classification
+    - content_category
+    - content_type
+    - section_type
+    description: The categorization of a content block within a document or email template.
+    expr: BLOCKTYPE
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - 1COLB
+    - 3GRIDB
+  - name: LINKTEXT
+    synonyms:
+    - anchor_text
+    - clickable_text
+    - display_text
+    - hyperlink_text
+    - link_label
+    description: The visible, clickable text part of a hyperlink that users interact with.
+    expr: LINKTEXT
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - Kaikkilataamisesta
+    - Alltomladdning
+    - JetztKontoerstellen
+  - name: LINKTRACKINGALIAS
+    synonyms:
+    - click_tracking_id
+    - link_tracking_name
+    - tracking_identifier
+    - url_tracking_alias
+    description: Link tracking alias used for monitoring and measuring click-through performance in marketing campaigns.
+    expr: LINKTRACKINGALIAS
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - VolvoCarsApp
+    - Electrification
+  - name: LINKTYPE
+    synonyms:
+    - hyperlink_classification
+    - link_category
+    - link_function
+    - link_purpose
+    - url_type
+    description: The classification of a link, indicating its purpose or function, such as image, cta, etc.
+    expr: LINKTYPE
+    data_type: VARCHAR(16777216)
+    sample_values:
+    - RichTextLink3
+    - RichTextLink1
+  primary_key:
+    columns:
+    - ALIAS
 - name: V_FACT_SFMC_PERFORMANCE_BLOCK
   description: The table contains records of email marketing block performance metrics. Each record represents a specific
     email block's performance within individual email campaigns, including click engagement data and timing information.
@@ -3802,9 +3802,16 @@ verified_queries:
   verified_by: Li Ma
   use_as_onboarding_question: false
 metadata:
-  merged_at: '2026-02-24T21:25:37.345099'
+  merged_at: '2026-02-24T22:08:17.741186'
   merged_from:
-  - schema.yaml
-  - instructions.yaml
-  - verified_queries.yaml
+    schema_metadata: _metadata.yaml
+    schema_tables:
+    - benchmark_thresholds.yaml
+    - dim_country.yaml
+    - dim_job_metadata.yaml
+    - dim_sfmc_alias.yaml
+    - fact_performance_block.yaml
+    - fact_performance_tracking.yaml
+    instructions: instructions.yaml
+    verified_queries: verified_queries.yaml
   version: '2.0'

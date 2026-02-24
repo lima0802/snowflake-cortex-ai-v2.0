@@ -162,7 +162,7 @@ This semantic model is split into three modular components:
 python scripts/merge_semantic_models.py
 
 # Validate YAML syntax
-python -c "import yaml; yaml.safe_load(open('semantic_merged.yaml'))"
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/semantic_merged.yaml'))"
 
 # Deploy to test stage
 python scripts/deploy_semantic_model.py --stage TEST_SEMANTIC_MODELS

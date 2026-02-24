@@ -2,19 +2,20 @@
 Merge Modular Semantic Model Components
 ========================================
 
-This script merges three separate semantic model files into a single
+This script merges modular semantic model files into a single
 complete model ready for deployment to Snowflake.
 
 Merges:
-1. schema.yaml - Table schemas
-2. instructions.yaml - Business rules
-3. verified_queries.yaml - Example queries
+1. schema/_metadata.yaml - Model name and description
+2. schema/*.yaml - All table definitions (6 tables)
+3. instructions.yaml - Business rules
+4. verified_queries.yaml - Example queries
 
 Output:
-- semantic_merged.yaml (ready for deployment)
+- orchestrator/semantic_models/semantic_merged.yaml (ready for deployment)
 
 Usage:
-    python scripts/merge_semantic_models.py [--input-dir semantic_models/] [--output semantic_merged.yaml]
+    python scripts/merge_semantic_models.py [--input-dir semantic_models/] [--output orchestrator/semantic_models/semantic_merged.yaml]
 
 Author: Li Ma
 Date: February 24, 2026
@@ -25,7 +26,7 @@ import sys
 import yaml
 import argparse
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 from datetime import datetime
 
 # Add parent directory to path
@@ -38,7 +39,8 @@ class SemanticModelMerger:
     def __init__(self, input_dir: str, output_file: str):
         self.input_dir = Path(input_dir)
         self.output_file = Path(output_file)
-        self.schema_file = self.input_dir / 'schema.yaml'
+        self.schema_dir = self.input_dir / 'schema'
+        self.metadata_file = self.schema_dir / '_metadata.yaml'
         self.instructions_file = self.input_dir / 'instructions.yaml'
         self.verified_queries_file = self.input_dir / 'verified_queries.yaml'
     
@@ -60,25 +62,39 @@ class SemanticModelMerger:
             print(f"❌ Error loading {filepath.name}: {e}")
             raise
     
-    def validate_schema(self, schema: Dict[str, Any]) -> bool:
+    def load_table_files(self) -> List[Dict[str, Any]]:
+        """Load all table YAML files from schema directory"""
+        tables = []
+        
+        if not self.schema_dir.exists():
+            print(f"❌ Schema directory not found: {self.schema_dir}")
+            return tables
+        
+        # Get all YAML files except _metadata.yaml
+        table_files = sorted([
+            f for f in self.schema_dir.glob('*.yaml')
+            if f.name != '_metadata.yaml'
+        ])
+        
+        print(f"📚 Loading {len(table_files)} table files from schema/...")
+        for table_file in table_files:
+            table_data = self.load_yaml(table_file)
+            if table_data:
+                tables.append(table_data)
+        
+        return tables
+    
+    def validate_schema(self, tables: List[Dict[str, Any]]) -> bool:
         """Validate schema structure"""
-        if not schema:
-            print("❌ Schema is empty")
+        if not tables:
+            print("❌ No tables loaded")
             return False
         
-        if 'tables' not in schema:
-            print("❌ Schema missing 'tables' section")
+        if not isinstance(tables, list):
+            print("❌ Tables must be a list")
             return False
         
-        if not isinstance(schema['tables'], list):
-            print("❌ Schema 'tables' must be a list")
-            return False
-        
-        if len(schema['tables']) == 0:
-            print("⚠️  Schema has no tables defined")
-            return False
-        
-        print(f"✅ Schema valid: {len(schema['tables'])} tables")
+        print(f"✅ Schema valid: {len(tables)} tables")
         return True
     
     def merge(self) -> Dict[str, Any]:
@@ -87,16 +103,24 @@ class SemanticModelMerger:
         print("🔄 MERGING SEMANTIC MODEL COMPONENTS")
         print("="*70 + "\n")
         
-        # Load components
-        print("📖 Loading components...")
-        schema = self.load_yaml(self.schema_file)
+        # Load metadata
+        print("📖 Loading model metadata...")
+        metadata = self.load_yaml(self.metadata_file)
+        
+        # Load all table files
+        print()
+        tables = self.load_table_files()
+        
+        # Load instructions and verified queries
+        print()
+        print("📖 Loading additional components...")
         instructions = self.load_yaml(self.instructions_file)
         verified_queries = self.load_yaml(self.verified_queries_file)
         
         print()
         
-        # Validate schema
-        if not self.validate_schema(schema):
+        # Validate tables
+        if not self.validate_schema(tables):
             raise ValueError("Schema validation failed")
         
         print()
@@ -104,13 +128,13 @@ class SemanticModelMerger:
         # Build merged model
         print("🔀 Merging components...")
         merged = {
-            'name': schema.get('name', 'Unknown Model'),
-            'description': schema.get('description', ''),
-            'tables': schema.get('tables', [])
+            'name': metadata.get('name', 'Unknown Model'),
+            'description': metadata.get('description', ''),
+            'tables': tables
         }
         
         # Add instructions if present
-        if instructions and  'instructions' in instructions:
+        if instructions and 'instructions' in instructions:
             merged['instructions'] = instructions['instructions']
             count = len(instructions['instructions']) if isinstance(instructions['instructions'], list) else len(instructions['instructions'])
             print(f"   ✅ Added {count} instruction rules")
@@ -124,7 +148,12 @@ class SemanticModelMerger:
         # Add metadata
         merged['metadata'] = {
             'merged_at': datetime.now().isoformat(),
-            'merged_from': ['schema.yaml', 'instructions.yaml', 'verified_queries.yaml'],
+            'merged_from': {
+                'schema_metadata': '_metadata.yaml',
+                'schema_tables': [f.name for f in sorted(self.schema_dir.glob('*.yaml')) if f.name != '_metadata.yaml'],
+                'instructions': 'instructions.yaml',
+                'verified_queries': 'verified_queries.yaml'
+            },
             'version': '2.0'
         }
         
@@ -179,8 +208,8 @@ def main():
     parser.add_argument(
         '--output',
         '-o',
-        default='semantic_merged.yaml',
-        help='Output file for merged model (default: semantic_merged.yaml)'
+        default='orchestrator/semantic_models/semantic_merged.yaml',
+        help='Output file for merged model (default: orchestrator/semantic_models/semantic_merged.yaml)'
     )
     
     parser.add_argument(
@@ -198,8 +227,9 @@ def main():
     try:
         if args.validate_only:
             print("\n🔍 Validation mode - checking files only...\n")
-            schema = merger.load_yaml(merger.schema_file)
-            merger.validate_schema(schema)
+            merger.load_yaml(merger.metadata_file)
+            tables = merger.load_table_files()
+            merger.validate_schema(tables)
             print("\n✅ Validation passed!")
         else:
             merger.merge()

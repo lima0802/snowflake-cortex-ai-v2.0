@@ -32,14 +32,14 @@ python scripts/deploy_semantic_model.py
 python scripts/split_semantic_model.py
 
 # Validate YAML syntax
-python -c "import yaml; yaml.safe_load(open('semantic_merged.yaml'))"
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/semantic_merged.yaml'))"
 ```
 
 ### 30-Second Workflow
 
 ```powershell
 # 1. Edit modular files
-code orchestrator/semantic_models/schema.yaml       # Add tables/columns
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml  # Edit specific table
 code orchestrator/semantic_models/instructions.yaml # Add business rules
 code orchestrator/semantic_models/verified_queries.yaml # Add examples
 
@@ -73,13 +73,20 @@ python scripts/deploy_semantic_model.py
 orchestrator/semantic_models/
 ├── README.md                    # This documentation
 ├── __init__.py                  # Module initialization (v2.0.0)
-├── schema.yaml                  # 📊 Tables, dimensions, measures
+├── schema/                      # 📊 Table definitions (split by table)
+│   ├── _metadata.yaml           # Model name & description
+│   ├── benchmark_thresholds.yaml    # Benchmark table (341 lines)
+│   ├── dim_country.yaml         # Country dimension (455 lines)
+│   ├── dim_job_metadata.yaml   # Campaign metadata (682 lines)
+│   ├── dim_sfmc_alias.yaml      # Email blocks (114 lines)
+│   ├── fact_performance_block.yaml  # Block metrics (101 lines)
+│   └── fact_performance_tracking.yaml  # Main fact (1,018 lines)
 ├── instructions.yaml            # 📋 Business rules & guidelines
 └── verified_queries.yaml        # 💡 Training examples (Q&A pairs)
 
 scripts/
 ├── split_semantic_model.py      # Split monolithic → modular
-└── merge_semantic_models.py     # Merge modular → deployment
+└── merge_semantic_models.py     # Merge schema/ + instructions + queries
 
 data-layer/semantic-models/
 └── semantic.yaml                # Original monolithic file (backup)
@@ -103,7 +110,7 @@ python scripts/split_semantic_model.py
 
 **What it does:**
 - Reads `data-layer/semantic-models/semantic.yaml` (5,034 lines)
-- Extracts schema → `orchestrator/semantic_models/schema.yaml`
+- Extracts schema → `orchestrator/semantic_models/schema/` (7 files by table)
 - Extracts instructions → `orchestrator/semantic_models/instructions.yaml`
 - Extracts verified queries → `orchestrator/semantic_models/verified_queries.yaml`
 - Creates automatic backup
@@ -112,7 +119,7 @@ python scripts/split_semantic_model.py
 **Output:**
 ```
 ✅ Split complete!
-   Tables: 6
+   Tables: 6 (split into separate files)
    Instructions: 14
    Verified Queries: 63
 ```
@@ -135,7 +142,7 @@ python scripts/merge_semantic_models.py
 - Validates structure
 - Combines into single YAML
 - Adds metadata (merge timestamp, version)
-- Outputs → `semantic_merged.yaml` (169.3 KB)
+- Outputs → `orchestrator/semantic_models/semantic_merged.yaml` (169.5 KB)
 
 **Output:**
 ```
@@ -158,8 +165,8 @@ python scripts/merge_semantic_models.py
 │         │ python scripts/split_semantic_model.py             │
 │         ▼                                                     │
 │  ┌──────────────┬────────────────┬─────────────────┐        │
-│  │ schema.yaml  │  instructions  │ verified_queries │        │
-│  │              │     .yaml      │     .yaml        │        │
+│  │  schema/     │  instructions  │ verified_queries │        │
+│  │  (7 files)   │     .yaml      │     .yaml        │        │
 │  └──────────────┴────────────────┴─────────────────┘        │
 │         │              │                  │                  │
 │         └──────────────┼──────────────────┘                  │
@@ -171,7 +178,7 @@ python scripts/merge_semantic_models.py
 ┌─────────────────────────────────────────────────────────────┐
 │                   DEPLOYMENT (Merge)                         │
 │                                                               │
-│  semantic_merged.yaml (169.3 KB)                             │
+│  orchestrator/semantic_models/semantic_merged.yaml (169.5 KB)                             │
 │         │                                                     │
 │         │ python scripts/deploy_semantic_model.py            │
 │         ▼                                                     │
@@ -190,12 +197,15 @@ python scripts/merge_semantic_models.py
 ### Scenario 1: Add New Table
 
 ```powershell
-# 1. Edit schema.yaml
-code orchestrator/semantic_models/schema.yaml
+# 1. Create new table file in schema/
+code orchestrator/semantic_models/schema/my_new_table.yaml
 
-# Add your table:
-# - name: MY_NEW_TABLE
-#   base_table: PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.MY_TABLE
+# Add your table definition (without leading dash):
+# name: MY_NEW_TABLE
+#   base_table: 
+#     database: DEV_MARCOM_DB
+#     schema: APP_DIRECTMARKETING
+#     table: MY_TABLE
 #   description: "My new table for XYZ analysis"
 #   dimensions: ...
 #   measures: ...
@@ -252,16 +262,16 @@ python scripts/deploy_semantic_model.py
 # 1. Create feature branch
 git checkout -b feature/add-bounce-analysis
 
-# 2. Edit modular files
-code orchestrator/semantic_models/schema.yaml
-# ... make changes ...
+# 2. Edit specific table file
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml
+# ... make changes to fact table ...
 
 # 3. Test locally
 python scripts/merge_semantic_models.py
 python scripts/deploy_semantic_model.py
 
 # 4. Commit only the modular files
-git add orchestrator/semantic_models/schema.yaml
+git add orchestrator/semantic_models/schema/
 git add orchestrator/semantic_models/instructions.yaml
 git commit -m "feat: add bounce rate analysis dimensions"
 
@@ -285,13 +295,14 @@ git push origin feature/add-bounce-analysis
 ### 1. **Edit Modular Files, Not Merged**
 
 ```powershell
-# ✅ CORRECT: Edit modular files
-code orchestrator/semantic_models/schema.yaml
+# ✅ CORRECT: Edit individual table files
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml
+code orchestrator/semantic_models/schema/dim_country.yaml
 code orchestrator/semantic_models/instructions.yaml
 code orchestrator/semantic_models/verified_queries.yaml
 
 # ❌ WRONG: Don't edit merged output
-code semantic_merged.yaml  # This gets overwritten!
+code orchestrator/semantic_models/semantic_merged.yaml  # This gets overwritten!
 ```
 
 ### 2. **Always Merge Before Deploy**
@@ -308,8 +319,8 @@ python scripts/deploy_semantic_model.py  # Deploys old version!
 ### 3. **Validate YAML Syntax**
 
 ```powershell
-# After editing any YAML file:
-python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema.yaml'))"
+# After editing any table file:
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema/fact_performance_tracking.yaml'))"
 python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/instructions.yaml'))"
 python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/verified_queries.yaml'))"
 ```
@@ -388,25 +399,28 @@ python scripts/deploy_semantic_model.py
 ### Add New Dimension to Existing Table
 
 ```powershell
-# 1. Edit schema.yaml
-code orchestrator/semantic_models/schema.yaml
+# 1. Edit the specific table file
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml
 ```
 
 ```yaml
-# Find your table and add dimension:
-tables:
-  - name: VW_SFMC_EMAIL_PERFORMANCE
-    dimensions:
-      # ... existing dimensions ...
-      - name: CAMPAIGN_OBJECTIVE
-        expr: CAMPAIGN_OBJECTIVE
-        data_type: VARCHAR
-        unique_name: EMAIL_CAMPAIGN_OBJECTIVE
-        description: "Campaign objective: awareness, consideration, conversion, retention"
-        sample_values:
-          - "awareness"
-          - "consideration"
-          - "conversion"
+# Add dimension to the table:
+name: V_FACT_SFMC_PERFORMANCE_TRACKING
+base_table:
+  database: DEV_MARCOM_DB
+  schema: APP_DIRECTMARKETING
+  table: V_FACT_SFMC_PERFORMANCE_TRACKING
+dimensions:
+  # ... existing dimensions ...
+  - name: CAMPAIGN_OBJECTIVE
+    expr: CAMPAIGN_OBJECTIVE
+    data_type: VARCHAR
+    unique_name: EMAIL_CAMPAIGN_OBJECTIVE
+    description: "Campaign objective: awareness, consideration, conversion, retention"
+    sample_values:
+      - "awareness"
+      - "consideration"
+      - "conversion"
 ```
 
 ```powershell
@@ -418,7 +432,7 @@ python scripts/deploy_semantic_model.py
 ### Add New Measure (Metric)
 
 ```yaml
-# In schema.yaml, add to measures section:
+# In the appropriate table file (e.g., fact_performance_tracking.yaml):
 measures:
   - name: CONVERSION_RATE
     expr: CONVERSION_COUNT / NULLIF(CLICK_COUNT, 0)
@@ -430,7 +444,7 @@ measures:
 ### Add Time Dimension
 
 ```yaml
-# In schema.yaml:
+# In the table file (e.g., fact_performance_tracking.yaml):
 time_dimensions:
   - name: PURCHASE_DATE
     expr: PURCHASE_DATE
@@ -558,7 +572,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: semantic-merged-model
-          path: semantic_merged.yaml
+          path: orchestrator/semantic_models/semantic_merged.yaml
 ```
 
 #### 3. Trigger Deployment
@@ -606,8 +620,11 @@ if git diff --cached --name-only | grep -q "orchestrator/semantic_models/"
 then
     echo "🔍 Validating semantic model changes..."
     
-    # Validate YAML syntax
-    python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema.yaml'))" || exit 1
+    # Validate YAML syntax for all table files
+    for file in orchestrator/semantic_models/schema/*.yaml; do
+        python -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
+    done
+    
     python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/instructions.yaml'))" || exit 1
     python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/verified_queries.yaml'))" || exit 1
     
@@ -640,10 +657,13 @@ python scripts/split_semantic_model.py
 ### Issue: "YAML syntax error"
 
 ```powershell
-# Validate each file individually:
-python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema.yaml'))"
+# Validate each table file individually:
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema/fact_performance_tracking.yaml'))"
 python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/instructions.yaml'))"
 python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/verified_queries.yaml'))"
+
+# Or validate all table files at once:
+for file in orchestrator/semantic_models/schema/*.yaml; do python -c "import yaml; yaml.safe_load(open('$file'))"; done
 
 # Common issues:
 # - Incorrect indentation (use 2 spaces, not tabs)
@@ -687,11 +707,12 @@ python scripts/deploy_semantic_model.py
 ### Issue: "Merge creates huge file"
 
 ```powershell
-# Check modular file sizes:
-ls -lh orchestrator/semantic_models/*.yaml
+# Check individual table file sizes:
+ls -lh orchestrator/semantic_models/schema/*.yaml
 
-# If schema.yaml is too large, consider:
-# 1. Remove unused dimensions
+# The schema is already split by table (7 files).
+# If individual table files are still too large:
+# 1. Remove unused dimensions/measures
 # 2. Split into multiple semantic models (by business unit)
 # 3. Use views to pre-aggregate data
 ```
@@ -699,18 +720,20 @@ ls -lh orchestrator/semantic_models/*.yaml
 ### Issue: "Git merge conflicts"
 
 ```powershell
-# Because files are modular, conflicts are easier:
+# Because schema is split by table, conflicts are isolated:
 
-# 1. Accept both changes if in different sections
-# 2. Edit conflicted file directly
-code orchestrator/semantic_models/schema.yaml  # Fix conflicts
+# 1. Check which table file has conflicts
+git status
+
+# 2. Edit only the conflicted table file
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml  # Fix conflicts
 
 # 3. Test the merge
 python scripts/merge_semantic_models.py
 
 # 4. Complete merge
-git add orchestrator/semantic_models/schema.yaml
-git commit -m "fix: resolve merge conflict in schema"
+git add orchestrator/semantic_models/schema/
+git commit -m "fix: resolve merge conflict in fact_performance_tracking"
 ```
 
 ---
@@ -725,14 +748,22 @@ Created: 2026-02-24
 Last Updated: 2026-02-24
 
 Components:
-- schema.yaml: 6 tables, ~90KB
-- instructions.yaml: 14 rules, ~6KB
-- verified_queries.yaml: 63 queries, ~67KB
+- schema/ directory: 7 files (1 metadata + 6 tables), ~98KB total
+  * _metadata.yaml: model name/description, ~0.6KB
+  * benchmark_thresholds.yaml: ~11KB
+  * dim_country.yaml: ~18KB
+  * dim_job_metadata.yaml: ~23KB
+  * dim_sfmc_alias.yaml: ~5KB
+  * fact_performance_block.yaml: ~3KB
+  * fact_performance_tracking.yaml: ~37KB
+- instructions.yaml: 14 rules, ~9KB
+- verified_queries.yaml: 63 queries, ~65KB
 
 Merged Output:
-- semantic_merged.yaml: 169.3 KB (173,334 bytes)
+- orchestrator/semantic_models/semantic_merged.yaml: 169.5 KB (173,592 bytes)
 
 Business Units: 7 (VCUK, VCDE, VCFR, VCES, VCIT, VCNL, VCBE)
+```
 Markets: 15+ (UK, Germany, France, Spain, Italy, Netherlands, Belgium, etc.)
 Date Range: 2023-01-01 to present
 ```
@@ -785,29 +816,30 @@ data-layer/semantic-models/       # Original monolithic backup
 ### Key Concepts
 
 1. **Modular = Easy Editing**
-   - Edit `schema.yaml`, `instructions.yaml`, `verified_queries.yaml` separately
+   - Edit table files in `schema/`, `instructions.yaml`, `verified_queries.yaml` separately
+   - Each table in its own file (7 files total)
    - Clear separation of concerns
-   - Team-friendly collaboration
+   - Team-friendly collaboration (work on different tables simultaneously)
 
 2. **Split Once = One-Time Operation**
    - Use `split_semantic_model.py` to break down existing monolithic file
-   - Creates 3 modular files from 1 large file
+   - Creates modular structure: schema/ directory + instructions + verified_queries
 
 3. **Merge Every Time = Deployment**
    - Use `merge_semantic_models.py` before every deployment
-   - Combines 3 modular files into 1 deployment-ready file
+   - Combines schema/ + instructions + verified_queries into 1 deployment-ready file
    - Automated in CI/CD pipeline
 
 4. **Git = Version Control**
-   - Commit modular files, not merged output
-   - Small focused commits
+   - Commit modular files (schema/ directory), not merged output
+   - Small focused commits per table
    - Easy code reviews
 
 ### Quick Command Reference
 
 ```powershell
 # Daily workflow
-code orchestrator/semantic_models/schema.yaml       # Edit
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml  # Edit specific table
 python scripts/merge_semantic_models.py             # Merge
 python scripts/deploy_semantic_model.py             # Deploy
 
@@ -815,11 +847,14 @@ python scripts/deploy_semantic_model.py             # Deploy
 python scripts/split_semantic_model.py              # Split monolithic → modular
 
 # Validation
-python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema.yaml'))"
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/schema/fact_performance_tracking.yaml'))"
+# Or validate merged output:
+python -c "import yaml; yaml.safe_load(open('orchestrator/semantic_models/semantic_merged.yaml'))"
 
 # Git workflow
-git add orchestrator/semantic_models/*.yaml
-git commit -m "feat: add new dimensions"
+git add orchestrator/semantic_models/schema/
+git add orchestrator/semantic_models/instructions.yaml
+git commit -m "feat: add new dimensions to fact_performance_tracking"
 git push origin main
 ```
 
@@ -894,12 +929,12 @@ If you have an existing monolithic `semantic.yaml`:
 python scripts/split_semantic_model.py
 
 # This creates:
-# - orchestrator/semantic_models/schema.yaml
+# - orchestrator/semantic_models/schema/ (7 files: _metadata.yaml + 6 tables)
 # - orchestrator/semantic_models/instructions.yaml
 # - orchestrator/semantic_models/verified_queries.yaml
 
 # Then use modular workflow going forward:
-code orchestrator/semantic_models/schema.yaml        # Edit
+code orchestrator/semantic_models/schema/fact_performance_tracking.yaml  # Edit specific table
 python scripts/merge_semantic_models.py              # Merge
 python scripts/deploy_semantic_model.py              # Deploy
 ```
