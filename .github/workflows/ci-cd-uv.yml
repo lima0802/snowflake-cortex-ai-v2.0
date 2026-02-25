@@ -1,0 +1,204 @@
+name: CI/CD Pipeline with UV
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  PYTHON_VERSION: '3.11'
+  UV_VERSION: 'latest'
+
+jobs:
+  # ==========================================================================
+  # Test Job - Run tests with UV (10-100x faster than pip)
+  # ==========================================================================
+  test:
+    name: Test with UV
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Install UV
+        uses: astral-sh/setup-uv@v1
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: 📦 Install dependencies (Orchestrator)
+        run: |
+          cd orchestrator
+          uv sync --all-extras
+      
+      - name: 🧪 Run tests
+        run: |
+          cd orchestrator
+          uv run pytest ../tests/ -v --cov --cov-report=xml --cov-report=term
+      
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./orchestrator/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # ==========================================================================
+  # Lint Job - Code quality checks
+  # ==========================================================================
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Install UV
+        uses: astral-sh/setup-uv@v1
+      
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: 📦 Install linting tools
+        run: |
+          uv tool install ruff
+          uv tool install black
+      
+      - name: 🎨 Check code formatting with Black
+        run: black --check orchestrator/ scripts/ tests/ web-app/
+      
+      - name: 🔍 Lint with Ruff
+        run: ruff check orchestrator/ scripts/ tests/ web-app/
+
+  # ==========================================================================
+  # Build Dev Image - For develop branch
+  # ==========================================================================
+  build-dev:
+    name: Build Dev Image
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 🏗️ Build Docker images (Dev)
+        run: |
+          ENV=dev docker-compose build --parallel
+      
+      - name: ✅ Test container health
+        run: |
+          ENV=dev docker-compose up -d
+          sleep 30
+          docker-compose ps
+          curl -f http://localhost:8000/api/v1/health || exit 1
+          ENV=dev docker-compose down
+
+  # ==========================================================================
+  # Build & Push Prod Image - For main branch
+  # ==========================================================================
+  build-prod:
+    name: Build & Push Production
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 🔐 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      
+      - name: 🏗️ Build and push Orchestrator image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./orchestrator
+          file: ./orchestrator/Dockerfile
+          target: production
+          push: true
+          tags: |
+            ${{ secrets.REGISTRY_URL }}/dia-orchestrator:latest
+            ${{ secrets.REGISTRY_URL }}/dia-orchestrator:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+      
+      - name: 🏗️ Build and push Web App image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web-app
+          file: ./web-app/Dockerfile
+          target: production
+          push: true
+          tags: |
+            ${{ secrets.REGISTRY_URL }}/dia-web-app:latest
+            ${{ secrets.REGISTRY_URL }}/dia-web-app:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+      
+      - name: 📝 Create deployment summary
+        run: |
+          echo "## 🚀 Production Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Images:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`dia-orchestrator:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`dia-web-app:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================================================
+  # Deploy - Deploy to target environment
+  # ==========================================================================
+  deploy:
+    name: Deploy to Environment
+    needs: build-prod
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: 🚀 Deploy notification
+        run: |
+          echo "Deploying to ${{ github.event.inputs.environment }}"
+          # Add your deployment logic here (kubectl, docker-compose, etc.)

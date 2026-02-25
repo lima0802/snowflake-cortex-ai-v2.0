@@ -1,0 +1,40 @@
+[project]
+name = "dia-web-app"
+version = "2.0.0"
+description = "DIA Cortex AI Web Application - Streamlit frontend"
+requires-python = ">=3.11"
+authors = [
+    { name = "Li Ma", email = "li.ma@wpp.com" }
+]
+readme = "README.md"
+
+dependencies = [
+    "streamlit==1.30.0",
+    "snowflake-snowpark-python==1.11.1",
+    "python-dotenv==1.0.0",
+    "pandas==2.1.4",
+    "numpy==1.26.3",
+    "requests==2.31.0",
+    "plotly==5.18.0",
+    "altair==5.2.0",
+    "streamlit-extras==0.3.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.3",
+    "black>=24.1.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

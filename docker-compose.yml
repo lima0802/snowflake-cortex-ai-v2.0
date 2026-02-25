@@ -1,27 +1,53 @@
+# ============================================================================
+# Docker Compose Configuration for DIA Cortex AI Platform
+# ============================================================================
+# Supports multiple environments: dev, staging, prod
+# Uses UV for fast dependency management (10-100x faster than pip)
+#
+# Usage:
+#   Development:  ENV=dev docker-compose up
+#   Production:   ENV=prod docker-compose --profile prod up
+#   Staging:      ENV=staging docker-compose --profile staging up
+# ============================================================================
+
 version: '3.8'
 
+x-common-env: &common-env
+  SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT}
+  SNOWFLAKE_USER: ${SNOWFLAKE_USER}
+  SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD}
+  SNOWFLAKE_WAREHOUSE: ${SNOWFLAKE_WAREHOUSE}
+  SNOWFLAKE_ROLE: ${SNOWFLAKE_ROLE}
+
 services:
+  # ==========================================================================
+  # Orchestrator Service - FastAPI Backend
+  # ==========================================================================
   orchestrator:
     build:
       context: ./orchestrator
       dockerfile: Dockerfile
-    container_name: dia-orchestrator
+      target: ${BUILD_TARGET:-production}  # development, production
+      cache_from:
+        - type=gha
+      cache_to:
+        - type=gha,mode=max
+    container_name: dia-orchestrator-${ENV:-dev}
     ports:
-      - "8000:8000"
+      - "${ORCHESTRATOR_PORT:-8000}:8000"
     environment:
-      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
-      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
-      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
-      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
-      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
-      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      <<: *common-env
+      ENV: ${ENV:-dev}
+      SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-DEV_MARCOM_DB}
+      SNOWFLAKE_SCHEMA: ${SNOWFLAKE_SCHEMA:-APP_DIRECTMARKETING}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     env_file:
-      - .env
+      - .env.${ENV:-dev}
     volumes:
-      - ./orchestrator:/app
-      - ./config:/app/config
-      - ./tests:/tests
+      # Mount source code in development for hot-reload
+      - ${ORCHESTRATOR_VOLUMES:-./orchestrator:/app}
+      - ./config:/app/config:ro
+      - ./tests:/tests:ro
     restart: unless-stopped
     networks:
       - dia-network
@@ -31,27 +57,41 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '${ORCHESTRATOR_CPU_LIMIT:-2.0}'
+          memory: ${ORCHESTRATOR_MEM_LIMIT:-2G}
+        reservations:
+          cpus: '${ORCHESTRATOR_CPU_RES:-0.5}'
+          memory: ${ORCHESTRATOR_MEM_RES:-512M}
 
+  # ==========================================================================
+  # Web App Service - Streamlit Frontend
+  # ==========================================================================
   web-app:
     build:
       context: ./web-app
       dockerfile: Dockerfile
-    container_name: dia-web-app
+      target: ${BUILD_TARGET:-production}
+      cache_from:
+        - type=gha
+      cache_to:
+        - type=gha,mode=max
+    container_name: dia-web-app-${ENV:-dev}
     ports:
-      - "8501:8501"
+      - "${WEB_APP_PORT:-8501}:8501"
     environment:
-      - ORCHESTRATOR_URL=http://orchestrator:8000
-      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
-      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
-      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
-      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
-      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
-      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
-      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      <<: *common-env
+      ENV: ${ENV:-dev}
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-DEV_MARCOM_DB}
+      SNOWFLAKE_SCHEMA: ${SNOWFLAKE_SCHEMA:-APP_DIRECTMARKETING}
     env_file:
-      - .env
+      - .env.${ENV:-dev}
     volumes:
-      - ./web-app:/app
+      # Mount source code in development for hot-reload
+      - ${WEB_APP_VOLUMES:-./web-app:/app}
     restart: unless-stopped
     networks:
       - dia-network
@@ -64,11 +104,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '${WEB_APP_CPU_LIMIT:-1.0}'
+          memory: ${WEB_APP_MEM_LIMIT:-1G}
+        reservations:
+          cpus: '${WEB_APP_CPU_RES:-0.25}'
+          memory: ${WEB_APP_MEM_RES:-256M}
 
 networks:
   dia-network:
     driver: bridge
+    name: dia-network-${ENV:-dev}
 
 volumes:
   orchestrator-data:
+    name: orchestrator-data-${ENV:-dev}
   web-app-data:
+    name: web-app-data-${ENV:-dev}
