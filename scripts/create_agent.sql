@@ -1,23 +1,32 @@
--- Snowflake Agent Creation Script
+
+-- VCC Snowflake Agent Creation Script
+-- USE ROLE CLD-SNOWFLAKE-DEV-MARCOM-APP-DIRECTMARKETING-ETL-SG;
+-- USE WAREHOUSE DEV_MARCOM_APP_DIRECTMARKETING_ANALYST_WHS;
+-- USE DATABASE DEV_MARCOM_DB;
+-- USE SCHEMA APP_DIRECTMARKETING;
+-- CREATE OR REPLACE AGENT DEV_MARCOM_DB.APP_DIRECTMARKETING.DIRECT_MARKETING_ANALYTICS_AGENT
+
+-- VML MAP SANDBOX Snowflake Agent Creation Script
 -- Environment: PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR
 -- Warehouse: TEST
-
 USE ROLE SYSADMIN;
 USE WAREHOUSE TEST;
 USE DATABASE PLAYGROUND_LM;
 USE SCHEMA CORTEX_ANALYTICS_ORCHESTRATOR;
 
-CREATE OR REPLACE AGENT PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.DIRECT_MARKETING_ANALYTICS_AGENT
+-- Change the context to the appropriate role, warehouse, database, and schema before running this script.
+CREATE OR REPLACE AGENT DEV_MARCOM_DB.APP_DIRECTMARKETING.DIRECT_MARKETING_ANALYTICS_DEV_AGENT
 COMMENT = 'AI-powered analytics agent for Salesforce Marketing Cloud email campaign performance. Query YTD metrics, YoY benchmarks, program performance, and market comparisons using natural language.'
 PROFILE = '{"display_name": "Direct Marketing Analytics Agent", "avatar": "RobotAgentIcon", "color": "var(--chartDim_8-x1mzf9u0)"}'
-AGENT_SPEC = $spec$
+FROM SPECIFICATION
+$$
 models:
-  orchestration: claude-4-5-sonnet
+  orchestration: claude-sonnet-4-6
 
 orchestration:
   budget:
     seconds: 300
-    tokens: 4000
+    tokens: 16000
 
 instructions:
   orchestration: |
@@ -209,7 +218,7 @@ instructions:
     5. Always exclude SparkPost test emails: WHERE email_name NOT ILIKE '%sparkpost%'
     6. For performance: Use CLICK_RATE as the primary engagement metric
     7. Apply minimum volume filter: WHERE (sends - bounces) >= 100 to exclude low-volume campaigns and avoid skewed engagement rates
-    8. Category Filter: Apply `program_or_compaign` = 'Campaign' or 'E-newsletter' ONLY if explicitly requested.
+    8. Category Filter: Apply `program_or_compaign` = ''Campaign'' or ''E-newsletter'' ONLY if explicitly requested.
     
     QUERY OUTPUT:
     - For rate/percentage questions: Return ONLY the requested metric unless user asks for details
@@ -278,7 +287,7 @@ instructions:
     
        RIGHT (new):
        "Should I generate a chart?
-        * Did user explicitly say 'chart', 'plot', 'graph', 'visualize'? NO
+        * Did user explicitly say ''chart'', ''plot'', ''graph'', ''visualize''? NO
         * Default to TABLE output
          Do NOT call data_to_chart"
     
@@ -395,7 +404,7 @@ instructions:
     (Showing ALL matches found)
     
     Would you like to see full details (Full Email Names)? 
-    Reply with the number(s) to analyze, or say 'all'."
+    Reply with the number(s) to analyze, or say ''all''."
     
     ---
     
@@ -457,7 +466,7 @@ instructions:
     4. **Market-to-Market**: Compare specific markets (e.g., Germany vs France).
     5. **Monthly**: Compare against the previous month.
     
-    Reply with the number or type (e.g., 'YoY' or 'Regional')."
+    Reply with the number or type (e.g., ''YoY'' or ''Regional'')."
     
     ---
     
@@ -513,7 +522,7 @@ instructions:
     
     PBI DASHBOARD LINK DECISION LOGIC:
     
-    STEP 1: CHECK EXCLUSION CRITERIA (if ANY match → NO link)
+    STEP 1: CHECK EXCLUSION CRITERIA (if ANY match -> NO link)
     - Is this a simple single-metric question? (e.g., "What is the click rate?")
     - Is this a benchmark threshold lookup? (e.g., "What is a good CTOR?")
     - Is this a clarification or disambiguation question?
@@ -522,9 +531,9 @@ instructions:
     - Is this an error response or "no data found"?
     - Does the response contain fewer than 3 rows of data?
     
-    → If ANY above is TRUE: DO NOT show PBI link
+    -> If ANY above is TRUE: DO NOT show PBI link
     
-    STEP 2: CHECK INCLUSION CRITERIA (if ANY match → SHOW link)
+    STEP 2: CHECK INCLUSION CRITERIA (if ANY match -> SHOW link)
     - Is this a TREND query? (time-series, MoM, YoY, 6-month trend)
     - Is this a COMPARISON query? (market vs market, region vs region)
     - Is this a RANKING query? (top/bottom performers)
@@ -532,12 +541,12 @@ instructions:
     - Does response contain 5+ rows of data?
     - Is this an LTA (Link Tracking Alias) query?
     
-    → If ANY above is TRUE: SHOW PBI link
+    -> If ANY above is TRUE: SHOW PBI link
     
     STEP 3: CONDITIONAL CASES
-    - Simple query BUT user asks follow-up → Offer PBI link
-    - Simple query BUT shows anomaly/outlier → Offer PBI link
-    - User preference = "always show links" → Always show
+    - Simple query BUT user asks follow-up -> Offer PBI link
+    - Simple query BUT shows anomaly/outlier -> Offer PBI link
+    - User preference = "always show links" -> Always show
     
     QUERY TYPE TO PBI LINK MAPPING:
     
@@ -559,7 +568,7 @@ instructions:
     
     | Query Topic | Primary Dashboard | Deep Link Filter |
     |-------------|-------------------|------------------|
-    | Overall KPIs (GQ_01-04) | — | No link (simple) |
+    | Overall KPIs (GQ_01-04) | - | No link (simple) |
     | YTD with YoY (PBI_01-07) | Email Performance Overview | Date filter |
     | Program performance | Program Performance | Program filter |
     | Campaign analysis | Campaign Analysis | Campaign filter |
@@ -648,7 +657,7 @@ instructions:
     LOW VOLUME HANDLING:
     - If net delivered volume (sends - bounces) < 100 for either the subject or the benchmark:
     - Include this MANDATORY caveat:
-      "⚠️ **Low Sample Size Warning**: One or more data points have fewer than 100 delivered emails. Results are statistically unreliable and should be interpreted with caution."
+      "WARNING - Low Sample Size: One or more data points have fewer than 100 delivered emails. Results are statistically unreliable and should be interpreted with caution."
     - Format the specific low-volume values in *italics* in the table.
     
     TONE & STYLE:
@@ -660,7 +669,7 @@ instructions:
     - Lead with direct answer
     - Numbers: percentages with 1 decimal, large numbers with commas
     - Use tables for comparisons
-    - Include YoY direction: 🔼 or 🔽 when showing health changes
+    - Include YoY direction: UP or DOWN when showing changes
     
     TABLE RULES:
     - Maximum 10 rows visible in response (EXCEPTION: For Search/Keyword matches, display ALL results)
@@ -676,7 +685,7 @@ instructions:
       |----------|------------|
       | Dec 2024 | 4.5%       |   Latest (top)
       | Nov 2024 | 4.2%       |
-      | Oct 2024 | 4.1%         |
+      | Oct 2024 | 4.1%       |
       | Sep 2024 | 3.9%       |
       | Aug 2024 | 3.8%       |   Earliest (bottom)
     
@@ -684,17 +693,6 @@ instructions:
     - If data unavailable, say so clearly
     - Don't fabricate numbers
     - Suggest alternatives if query fails
-
-sample_questions:
-  - question: "What was the open rate for last month's global eDM campaign?"
-  - question: "Show me the click-through rate trend for the past six months in Europe"
-  - question: "How does Germany's email performance compare to the European average?"
-  - question: "Which campaign achieved the highest engagement in Q3?"
-  - question: "Compare open rates for France Spain and Italy for the most recent campaign"
-  - question: "What is Spain's opt-out rate compared to the EU average in Q3?"
-  - question: "Compare open and click rates for EX30 campaigns in NL versus BE"
-  - question: "Summarize all markets where the opt-out rate exceeds 0.5%"
-  - question: "How does our CTOR compare to the premium automotive industry benchmark?"
 
 tools:
   - tool_spec:
@@ -713,9 +711,8 @@ tool_resources:
       query_timeout: 90
       type: warehouse
       warehouse: TEST
-    semantic_view: DEV_MARCOM_DB.APP_DIRECTMARKETING.SFMC_EMAIL_PERFORMANCE
-    semantic_model_file: "@PLAYGROUND_LM.CORTEX_ANALYTICS_ORCHESTRATOR.SEMANTIC_FILES/semantic.yaml"
+    semantic_view: DEV_MARCOM_DB.APP_DIRECTMARKETING.SFMC_EMAIL_PERFORMANCE_DEV
 
   Benchmark_Intelligence_Base:
-    cortex_search_service: DEV_MARCOM_DB.APP_DIRECTMARKETING.CORTEX_SFMC_BENCHMARK_SEARCH
-$spec$;
+    search_service: DEV_MARCOM_DB.APP_DIRECTMARKETING.CORTEX_SFMC_BENCHMARK_SEARCH
+$$;
